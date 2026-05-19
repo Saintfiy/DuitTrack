@@ -202,19 +202,41 @@ export default function AIAssistantPage() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, typing]);
 
-  const send = useCallback((text?: string) => {
+  const send = useCallback(async (text?: string) => {
     const q = (text || input).trim();
     if (!q || typing || !ctx) return;
     setInput('');
     const userMsg: Msg = { role: 'user', content: q, ts: Date.now() };
     setMsgs(prev => [...prev, userMsg]);
     setTyping(true);
-    setTimeout(() => {
-      const reply = smartReply(q, ctx);
-      setMsgs(prev => [...prev, { role: 'ai', content: reply, ts: Date.now() }]);
+
+    try {
+      // Create a payload with the chat history + current message
+      // We pass the entire current msgs array so the model has memory of the conversation.
+      const payloadMsgs = [...msgs, userMsg].map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: payloadMsgs, context: ctx })
+      });
+
+      if (!res.ok) {
+        throw new Error('Gagal menghubungi AI Server');
+      }
+
+      const data = await res.json();
+      setMsgs(prev => [...prev, { role: 'ai', content: data.reply, ts: Date.now() }]);
+    } catch (err: any) {
+      console.error(err);
+      setMsgs(prev => [...prev, { role: 'ai', content: '⚠️ Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi.', ts: Date.now() }]);
+    } finally {
       setTyping(false);
-    }, 800 + Math.random() * 600);
-  }, [input, typing, ctx]);
+    }
+  }, [input, typing, ctx, msgs]);
 
   const renderContent = (text: string) =>
     text.split('\n').map((line, i) => {
