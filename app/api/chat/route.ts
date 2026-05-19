@@ -53,7 +53,7 @@ Bantu analisis berdasarkan data di atas jika ditanya. Jika pengguna menyapa, sap
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-flash-1.5', // Fast, cheap, and smart default
+        model: 'openai/gpt-4o-mini', // Fast, cheap, and smart default
         messages: formattedMessages,
       })
     });
