@@ -37,7 +37,7 @@ const SettingsPage = () => {
         phone: (user as any).phone || '',
       });
       setAvatarUrl((user as any).avatar_url || null);
-      
+
       // Load notifikasi
       const prefs = (user as any).notification_preferences;
       if (prefs && Array.isArray(prefs)) {
@@ -146,12 +146,12 @@ const SettingsPage = () => {
         address: businessData.address || null,
       }).eq('id', business.id);
       if (error) throw error;
-      
+
       // Update currency formatting globally
       localStorage.setItem('business_currency', businessData.currency);
-      
+
       addNotification('Pengaturan bisnis disimpan!', 'success');
-      
+
       // Reload page to apply currency formatting across all components
       setTimeout(() => {
         window.location.reload();
@@ -189,7 +189,7 @@ const SettingsPage = () => {
   const toggleNotif = async (idx: number) => {
     const newStates = notifStates.map((v, i) => i === idx ? !v : v);
     setNotifStates(newStates);
-    
+
     // Simpan ke db
     if (user) {
       try {
@@ -315,10 +315,10 @@ const SettingsPage = () => {
                 <label className="block text-sm font-medium text-white/80 mb-2">Mata Uang</label>
                 <select className="input-field" value={businessData.currency}
                   onChange={e => setBusinessData({ ...businessData, currency: e.target.value })}>
-                  <option value="IDR">IDR — Rupiah</option>
-                  <option value="USD">USD — Dolar AS</option>
-                  <option value="SGD">SGD — Dolar Singapura</option>
-                  <option value="MYR">MYR — Ringgit</option>
+                  <option value="IDR">IDR  Rupiah</option>
+                  <option value="USD">USD  Dolar AS</option>
+                  <option value="SGD">SGD  Dolar Singapura</option>
+                  <option value="MYR">MYR  Ringgit</option>
                 </select>
               </div>
             </div>

@@ -132,3 +132,126 @@ body {
     color: black !important;
   }
 }
+
+/* ─────────────────────────────────────────────
+   PREMIUM ANIMATION SYSTEM
+   All animations use transform + opacity only
+   for GPU-accelerated 60fps performance.
+──────────────────────────────────────────────── */
+
+/* Page-load intro: whole page fades in from very slightly off */
+@keyframes page-intro {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-intro {
+  animation: page-intro 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* Floating badge / tooltip */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float 3.5s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float 3.5s ease-in-out infinite 1.2s;
+}
+
+/* Button press ripple (CSS only, no JS) */
+@keyframes btn-ripple {
+  0%   { transform: scale(0.96); }
+  60%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+.btn-animate {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease,
+              filter 0.2s ease;
+  will-change: transform;
+}
+.btn-animate:hover {
+  transform: scale(1.03) translateY(-1px);
+}
+.btn-animate:active {
+  animation: btn-ripple 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Gradient text shimmer (hero accent) */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Card tilt transition reset */
+.tilt-card {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s ease;
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+/* Glow pulse (AI badge) */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(139,92,246,0.3); }
+  50%       { box-shadow: 0 0 24px rgba(139,92,246,0.6); }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* Number counter pop-in */
+@keyframes count-pop {
+  0%   { opacity: 0; transform: scale(0.7) translateY(10px); }
+  70%  { transform: scale(1.06) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-count-pop {
+  animation: count-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Reduced motion: override everything to simple fade */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .tilt-card {
+    transform: none !important;
+    transition: none !important;
+  }
+  .animate-float,
+  .animate-float-delayed,
+  .animate-gradient,
+  .animate-glow-pulse {
+    animation: none !important;
+  }
+}
+

@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Client-side Supabase client (used everywhere)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Server-only admin client — only import this in server-side code (API routes, Server Components)
+// Server-only admin client  only import this in server-side code (API routes, Server Components)
 // NEVER import this in client components
 export function getSupabaseAdmin() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';

@@ -56,12 +56,12 @@ function smartReply(msg: string, ctx: ReturnType<typeof buildContext> extends Pr
     const advice = margin >= 25
       ? 'Margin sangat baik! Pertimbangkan reinvestasi ke ekspansi produk atau buka cabang baru.'
       : margin >= 15
-      ? 'Margin sehat. Fokus pertahankan efisiensi dan cari peluang upsell ke pelanggan existing.'
-      : margin >= 5
-      ? 'Margin tipis. Review harga jual — apakah sudah mencakup semua biaya + profit yang diinginkan?'
-      : margin >= 0
-      ? 'Hampir impas. Prioritaskan potong 1-2 biaya terbesar dan pertimbangkan naikkan harga.'
-      : 'Bisnis sedang merugi. Segera identifikasi biaya terbesar dan evaluasi harga jual produk.';
+        ? 'Margin sehat. Fokus pertahankan efisiensi dan cari peluang upsell ke pelanggan existing.'
+        : margin >= 5
+          ? 'Margin tipis. Review harga jual  apakah sudah mencakup semua biaya + profit yang diinginkan?'
+          : margin >= 0
+            ? 'Hampir impas. Prioritaskan potong 1-2 biaya terbesar dan pertimbangkan naikkan harga.'
+            : 'Bisnis sedang merugi. Segera identifikasi biaya terbesar dan evaluasi harga jual produk.';
     return `**Analisis Laba Bisnis:**\n\n• Laba keseluruhan: ${formatCurrency(profit)}\n• Laba bulan ini: ${formatCurrency(monthProfit)}\n• Margin keuntungan: ${margin.toFixed(1)}%\n• ${trend}\n\n💡 **Saran:** ${advice}`;
   }
 
@@ -93,7 +93,7 @@ function smartReply(msg: string, ctx: ReturnType<typeof buildContext> extends Pr
     if (lowStock.length === 0) return `✅ Semua ${inventory.length} item stok dalam kondisi aman. Tidak ada yang perlu segera di-restock.`;
     const list = lowStock.slice(0, 5).map((i: any) => `• **${i.name}**: sisa ${i.quantity} unit (min. ${i.reorder_level})`).join('\n');
     const urgentCount = lowStock.filter((i: any) => i.quantity === 0).length;
-    return `**⚠️ ${lowStock.length} Item Stok Kritis:**\n\n${list}${lowStock.length > 5 ? `\n• ...dan ${lowStock.length - 5} item lainnya` : ''}\n\n${urgentCount > 0 ? `🚨 **${urgentCount} item sudah HABIS** — bisa menyebabkan kehilangan penjualan!\n\n` : ''}💡 Buka halaman **Inventori** untuk langsung update stok atau hubungi supplier.`;
+    return `**⚠️ ${lowStock.length} Item Stok Kritis:**\n\n${list}${lowStock.length > 5 ? `\n• ...dan ${lowStock.length - 5} item lainnya` : ''}\n\n${urgentCount > 0 ? `🚨 **${urgentCount} item sudah HABIS**  bisa menyebabkan kehilangan penjualan!\n\n` : ''}💡 Buka halaman **Inventori** untuk langsung update stok atau hubungi supplier.`;
   }
 
   // ---- HUTANG PIUTANG ----
@@ -116,7 +116,7 @@ function smartReply(msg: string, ctx: ReturnType<typeof buildContext> extends Pr
   if (q.match(/hemat|potong|efisiensi|rekomendasi|saran|tips|improve|tingkat|naik/)) {
     const top3 = topCats.slice(0, 3).map(([c, a]) => `**${c}** (${formatCurrency(a)})`).join(', ');
     const hasLowMargin = margin < 15;
-    return `**💡 Rekomendasi untuk Bisnis Anda:**\n\n1. **Efisiensi Pengeluaran** — Pengeluaran terbesar: ${top3 || 'belum ada data'}. Review vendor & negosiasi ulang kontrak.\n\n2. **Tagih Piutang** — Ada ${formatCurrency(totalReceivable)} yang bisa segera dicairkan untuk perkuat cashflow.\n\n3. **Pantau Budget** — Aktifkan limit budget di halaman **Budgeting** agar pengeluaran tidak kebablasan.\n\n4. **Optimasi Stok** — ${lowStock.length > 0 ? `${lowStock.length} item hampir habis, segera restock sebelum kehabisan.` : 'Stok aman, hindari overstock yang ikat modal tidak perlu.'}\n\n5. ${hasLowMargin ? '**Evaluasi Harga Jual** — Margin hanya ' + margin.toFixed(1) + '%. Pertimbangkan naikkan harga 5-10% atau kurangi diskon.' : '**Ekspansi** — Margin ' + margin.toFixed(1) + '% cukup sehat. Pertimbangkan tambah lini produk baru atau buka cabang.'}`;
+    return `**💡 Rekomendasi untuk Bisnis Anda:**\n\n1. **Efisiensi Pengeluaran**  Pengeluaran terbesar: ${top3 || 'belum ada data'}. Review vendor & negosiasi ulang kontrak.\n\n2. **Tagih Piutang**  Ada ${formatCurrency(totalReceivable)} yang bisa segera dicairkan untuk perkuat cashflow.\n\n3. **Pantau Budget**  Aktifkan limit budget di halaman **Budgeting** agar pengeluaran tidak kebablasan.\n\n4. **Optimasi Stok**  ${lowStock.length > 0 ? `${lowStock.length} item hampir habis, segera restock sebelum kehabisan.` : 'Stok aman, hindari overstock yang ikat modal tidak perlu.'}\n\n5. ${hasLowMargin ? '**Evaluasi Harga Jual**  Margin hanya ' + margin.toFixed(1) + '%. Pertimbangkan naikkan harga 5-10% atau kurangi diskon.' : '**Ekspansi**  Margin ' + margin.toFixed(1) + '% cukup sehat. Pertimbangkan tambah lini produk baru atau buka cabang.'}`;
   }
 
   // ---- PELANGGAN ----
@@ -273,7 +273,7 @@ export default function AIAssistantPage() {
             {typing && (
               <div className="flex justify-start">
                 <div className="px-4 py-3 bg-white/10 rounded-2xl rounded-bl-sm flex gap-1 items-center">
-                  {[0,1,2].map(i => <motion.div key={i} className="w-1.5 h-1.5 bg-white/50 rounded-full" animate={{ y: [0,-4,0] }} transition={{ duration: 0.6, delay: i*0.15, repeat: Infinity }} />)}
+                  {[0, 1, 2].map(i => <motion.div key={i} className="w-1.5 h-1.5 bg-white/50 rounded-full" animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, delay: i * 0.15, repeat: Infinity }} />)}
                 </div>
               </div>
             )}
@@ -341,7 +341,7 @@ export default function AIAssistantPage() {
               )}
             </>
           ) : (
-            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 rounded-xl bg-white/5 animate-pulse" />)}</div>
+            <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 rounded-xl bg-white/5 animate-pulse" />)}</div>
           )}
         </div>
       </div>

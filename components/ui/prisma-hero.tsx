@@ -144,7 +144,7 @@ export const PrismaHero = () => {
               transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="text-slate-500 text-lg leading-relaxed max-w-lg"
             >
-              AI + Analitik + OCR dalam satu platform. Dari pencatatan transaksi hingga laporan laba rugi — semua otomatis dan real-time.
+              AI + Analitik + OCR dalam satu platform. Dari pencatatan transaksi hingga laporan laba rugi  semua otomatis dan real-time.
             </motion.p>
 
             {/* CTA Buttons */}

@@ -10,7 +10,7 @@ import { useNotificationStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
-const MONTHS_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
 export default function ReportsPage() {
   const { businessId, business, loading: authLoading } = useAuth({ requireAuth: true });
@@ -100,7 +100,7 @@ export default function ReportsPage() {
         {/* Print Header */}
         <div className="hidden print:block mb-8 text-center text-black">
           <h1 className="text-3xl font-bold">Laporan Keuangan DuitTrack</h1>
-          <p className="mt-1">{business?.name} — {periodLabel}</p>
+          <p className="mt-1">{business?.name}  {periodLabel}</p>
           <p className="text-sm">Dicetak pada: {new Date().toLocaleDateString('id-ID')}</p>
         </div>
 
@@ -128,7 +128,7 @@ export default function ReportsPage() {
             {/* P&L Statement */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card hover={false}>
-                <h3 className="text-lg font-bold mb-4">Laporan Laba Rugi — {periodLabel}</h3>
+                <h3 className="text-lg font-bold mb-4">Laporan Laba Rugi  {periodLabel}</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between py-2 border-b border-white/5">
                     <span className="text-white/70">Pendapatan Kotor</span>

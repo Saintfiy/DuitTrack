@@ -158,7 +158,7 @@ export default function ScanStrukPage() {
   const stepKeys = ['upload', 'scanning', 'review', 'done'];
 
   return (
-    <DashboardLayout title="Scan Struk — Smart OCR">
+    <DashboardLayout title="Scan Struk  Smart OCR">
       <div className="max-w-xl mx-auto space-y-6">
         {/* Step indicator */}
         <div className="flex items-center gap-2 text-sm">
@@ -206,7 +206,7 @@ export default function ScanStrukPage() {
             </motion.div>
           )}
 
-          {/* STEP 2: Scanning — Gemini sedang proses */}
+          {/* STEP 2: Scanning  Gemini sedang proses */}
           {step === 'scanning' && (
             <motion.div key="scanning" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
               <Card hover={false}>
@@ -265,7 +265,7 @@ export default function ScanStrukPage() {
                   <img src={preview} alt="struk" className="w-full max-h-36 object-contain rounded-xl mb-4 opacity-60" />
                 )}
 
-                {/* Form — pakai nilai dari OCR atau kosong jika error */}
+                {/* Form  pakai nilai dari OCR atau kosong jika error */}
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-medium text-white/60 mb-1">Deskripsi</label>

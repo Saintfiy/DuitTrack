@@ -108,5 +108,5 @@ reports         → Laporan tersimpan
 ---
 
 <div align="center">
-  <strong>DuitTrack</strong> — Kelola keuangan bisnis Anda dengan lebih cerdas
+  <strong>DuitTrack</strong>  Kelola keuangan bisnis Anda dengan lebih cerdas
 </div>
