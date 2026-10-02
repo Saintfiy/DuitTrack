@@ -8,7 +8,7 @@ import {
   FiFileText, FiCpu, FiSettings,
   FiChevronRight, FiChevronLeft, FiLogOut, FiX, FiUser,
   FiTrendingUp, FiTarget, FiBarChart2, FiCamera,
-  FiLink, FiDollarSign,
+  FiDollarSign,
 } from 'react-icons/fi';
 import { useUIStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
@@ -47,7 +47,6 @@ const menuGroups = [
   {
     label: 'Lainnya',
     items: [
-      { label: 'Integrasi', icon: FiLink, href: '/integrasi' },
       { label: 'Pengaturan', icon: FiSettings, href: '/settings' },
     ],
   },
