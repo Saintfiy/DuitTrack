@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { FiMail, FiArrowLeft, FiCheck } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiMail, FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { Button } from '@/components/ui';
-import { isValidEmail } from '@/utils/helpers';
+import { supabase } from '@/lib/supabase';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -18,21 +18,16 @@ export default function ForgotPasswordPage() {
     setError('');
     setLoading(true);
 
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Mock password reset
-      console.log('Reset password for:', email);
-      setTimeout(() => {
-        setSubmitted(true);
-        setLoading(false);
-      }, 1000);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (resetError) throw resetError;
+      setSubmitted(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset email');
+      setError(err.message || 'Gagal mengirim email reset. Coba lagi.');
+    } finally {
       setLoading(false);
     }
   };
@@ -45,85 +40,102 @@ export default function ForgotPasswordPage() {
         className="w-full max-w-md"
       >
         <div className="card p-8 md:p-10">
-          {!submitted ? (
-            <>
-              {/* Header */}
-              <div className="text-center mb-8">
-                <Link href="/" className="inline-block text-3xl font-bold gradient-text mb-2">
-                  DuitTrack
-                </Link>
-                <p className="text-white/60">Reset your password</p>
-              </div>
+          <AnimatePresence mode="wait">
+            {!submitted ? (
+              <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <Link href="/" className="inline-block text-3xl font-bold gradient-text mb-2">
+                    DuitTrack
+                  </Link>
+                  <p className="text-white/60">Lupa Kata Sandi?</p>
+                </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <p className="text-white/70 text-sm mb-6">
-                  Enter your email address and we'll send you a link to reset your password.
+                <div className="w-14 h-14 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <FiMail size={26} className="text-primary" />
+                </div>
+
+                <p className="text-white/60 text-sm text-center mb-6">
+                  Masukkan email yang terdaftar. Kami akan mengirimkan link untuk mereset kata sandi Anda.
                 </p>
 
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">Email</label>
-                  <div className="relative">
-                    <FiMail className="absolute left-4 top-3 text-white/40" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="input-field !pl-11"
-                    />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white/80 mb-2">
+                      Alamat Email
+                    </label>
+                    <div className="relative">
+                      <FiMail className="absolute left-4 top-3.5 text-white/40" />
+                      <input
+                        id="forgot-email"
+                        type="email"
+                        required
+                        placeholder="email@kamu.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="input-field !pl-11"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Error */}
-                {error && <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">{error}</div>}
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-2 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm"
+                    >
+                      <FiAlertCircle className="shrink-0" />
+                      {error}
+                    </motion.div>
+                  )}
 
-                {/* Submit */}
-                <div className="pt-2">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="w-full justify-center"
-                    disabled={loading}
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      className="w-full justify-center"
+                      disabled={loading}
+                    >
+                      {loading ? 'Mengirim...' : 'Kirim Link Reset'}
+                    </Button>
+                  </div>
+
+                  <Link
+                    href="/login"
+                    className="flex items-center justify-center gap-2 text-white/50 hover:text-white/80 text-sm transition-colors mt-2"
                   >
-                    {loading ? 'Sending...' : 'Send Reset Email'}
-                  </Button>
-                </div>
-
-                {/* Back to login */}
-                <Link
-                  href="/auth/login"
-                  className="flex items-center justify-center gap-2 text-accent hover:text-accent/80 font-semibold text-sm"
-                >
-                  <FiArrowLeft /> Back to login
-                </Link>
-              </form>
-            </>
-          ) : (
-            // Success Screen
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center"
-            >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
-                <FiCheck className="text-3xl text-green-400" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2">Check your email</h2>
-              <p className="text-white/60 mb-6">
-                We've sent a password reset link to <span className="font-semibold text-white">{email}</span>. Check your inbox and click the link to reset your password.
-              </p>
-              <p className="text-white/40 text-sm mb-6">
-                If you don't see the email, check your spam folder.
-              </p>
-              <Link
-                href="/auth/login"
-                className="inline-block px-6 py-2 bg-primary text-darker rounded-lg hover:shadow-lg transition-smooth"
+                    <FiArrowLeft size={14} /> Kembali ke Login
+                  </Link>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-4"
               >
-                Back to login
-              </Link>
-            </motion.div>
-          )}
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center">
+                  <FiCheckCircle size={40} className="text-green-400" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Email Terkirim!</h2>
+                <p className="text-white/60 text-sm mb-2">
+                  Link reset kata sandi telah dikirim ke:
+                </p>
+                <p className="font-semibold text-primary mb-6">{email}</p>
+                <p className="text-white/40 text-xs mb-8">
+                  Tidak menerima email? Cek folder <span className="font-medium">Spam</span> atau tunggu beberapa menit.
+                </p>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-darker font-semibold rounded-xl hover:opacity-90 transition-opacity text-sm"
+                >
+                  <FiArrowLeft size={14} /> Kembali ke Login
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
     </div>

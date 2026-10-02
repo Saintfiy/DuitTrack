@@ -70,7 +70,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">Kata Sandi</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-white/80">Kata Sandi</label>
+                <Link href="/forgot-password" className="text-xs text-accent hover:text-accent/80 transition-colors">
+                  Lupa Kata Sandi?
+                </Link>
+              </div>
               <div className="relative">
                 <FiLock className="absolute left-4 top-3 text-white/40" />
                 <input
