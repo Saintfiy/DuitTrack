@@ -18,6 +18,10 @@
 
 ---
 
+## Konfigurasi Reset Password
+
+Atur `NEXT_PUBLIC_SITE_URL` ke URL publik aplikasi (contoh: `https://duittrack.example.com`). Tambahkan URL `https://duittrack.example.com/reset-password` ke daftar Redirect URLs di Supabase Dashboard → Authentication → URL Configuration, dan pastikan Site URL Supabase menggunakan domain produksi. Jika memakai template email kustom, tautan reset harus menggunakan `{{ .ConfirmationURL }}`.
+
 ## Struktur Halaman
 
 ```
