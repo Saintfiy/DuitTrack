@@ -61,10 +61,15 @@ export default function BudgetingPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessId) return;
+    const notes = form.notes.trim();
+    if (notes.length < 1 || notes.length > 100) {
+      addNotification('Catatan budget wajib diisi 1–100 karakter', 'error');
+      return;
+    }
     setSaving(true);
     try {
       const endDate = form.end_date || getEndDate(form.start_date, form.period);
-      const payload = { business_id: businessId, category: form.category, limit_amount: parseFloat(form.limit_amount), period: form.period, start_date: form.start_date, end_date: endDate, spent: 0, notes: form.notes.trim() || null };
+      const payload = { business_id: businessId, category: form.category, limit_amount: parseFloat(form.limit_amount), period: form.period, start_date: form.start_date, end_date: endDate, spent: 0, notes };
       if (editing) {
         const { error } = await supabase.from('budgets').update(payload).eq('id', editing.id);
         if (error) throw error;
@@ -189,14 +194,18 @@ export default function BudgetingPage() {
             <input type="date" className="input-field" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Deskripsi / Catatan (opsional)</label>
+            <label className="block text-sm font-medium mb-1">Deskripsi / Catatan</label>
             <textarea
               className="input-field"
               rows={2}
+              required
+              minLength={1}
+              maxLength={100}
               value={form.notes}
               onChange={e => setForm({ ...form, notes: e.target.value })}
-              placeholder="Tambahkan keterangan untuk budget ini"
+              placeholder="Tambahkan catatan (maksimal 100 karakter)"
             />
+            <p className="text-xs text-white/40 mt-1">{form.notes.length}/100 karakter</p>
           </div>
           <div className="pt-2 flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Batal</Button>
