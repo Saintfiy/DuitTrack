@@ -102,6 +102,7 @@ export interface Budget {
   id: string;
   business_id: string;
   category: string;
+  notes?: string | null;
   limit: number;
   spent: number;
   period: 'monthly' | 'quarterly' | 'yearly';

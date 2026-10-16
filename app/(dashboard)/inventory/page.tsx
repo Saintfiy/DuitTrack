@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { Card, Button, StatCard, Modal } from '@/components/ui';
+import { Card, Button, StatCard, Modal, PriceInput } from '@/components/ui';
 import { FiPlus, FiEdit2, FiTrash2, FiAlertTriangle, FiBell, FiDownload, FiBox, FiDollarSign } from 'react-icons/fi';
 import { formatCurrency, exportToCSV } from '@/utils/helpers';
 import { useNotificationStore } from '@/store';
@@ -129,8 +129,8 @@ export default function InventoryPage() {
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="block text-sm font-medium mb-1">Harga Satuan</label>
-          <input required type="number" min="0" className="input-field" value={formData.unitPrice}
-            onChange={e => setFormData({ ...formData, unitPrice: e.target.value })} />
+          <PriceInput required className="input-field" value={formData.unitPrice}
+            onChange={unitPrice => setFormData({ ...formData, unitPrice })} />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Jumlah</label>

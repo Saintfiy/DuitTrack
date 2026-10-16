@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { Card, Button, StatCard, Modal } from '@/components/ui';
+import { Card, Button, StatCard, Modal, PriceInput } from '@/components/ui';
 import { FiPlus, FiEdit2, FiTrash2, FiAlertTriangle, FiCheckCircle, FiClock, FiDollarSign, FiArrowDownCircle } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { formatCurrency, formatDate } from '@/utils/helpers';
@@ -177,7 +177,7 @@ export default function HutangPiutangPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Jumlah (Rp)</label>
-              <input required type="number" className="input-field" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+              <PriceInput required className="input-field" value={form.amount} onChange={amount => setForm({ ...form, amount })} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Jatuh Tempo</label>

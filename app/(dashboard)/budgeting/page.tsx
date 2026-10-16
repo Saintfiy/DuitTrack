@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { Card, Button, Modal } from '@/components/ui';
+import { Card, Button, Modal, PriceInput } from '@/components/ui';
 import { FiPlus, FiEdit2, FiTrash2, FiTarget, FiAlertTriangle } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/utils/helpers';
@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
 
-const emptyForm = { category: 'Operasional', limit_amount: '', period: 'monthly' as 'monthly' | 'quarterly' | 'yearly', start_date: new Date().toISOString().split('T')[0], end_date: '' };
+const emptyForm = { category: 'Operasional', limit_amount: '', period: 'monthly' as 'monthly' | 'quarterly' | 'yearly', start_date: new Date().toISOString().split('T')[0], end_date: '', notes: '' };
 
 export default function BudgetingPage() {
   const { businessId, loading: authLoading } = useAuth({ requireAuth: true });
@@ -64,7 +64,7 @@ export default function BudgetingPage() {
     setSaving(true);
     try {
       const endDate = form.end_date || getEndDate(form.start_date, form.period);
-      const payload = { business_id: businessId, category: form.category, limit_amount: parseFloat(form.limit_amount), period: form.period, start_date: form.start_date, end_date: endDate, spent: 0 };
+      const payload = { business_id: businessId, category: form.category, limit_amount: parseFloat(form.limit_amount), period: form.period, start_date: form.start_date, end_date: endDate, spent: 0, notes: form.notes.trim() || null };
       if (editing) {
         const { error } = await supabase.from('budgets').update(payload).eq('id', editing.id);
         if (error) throw error;
@@ -89,7 +89,7 @@ export default function BudgetingPage() {
 
   const openEdit = (b: any) => {
     setEditing(b);
-    setForm({ category: b.category, limit_amount: b.limit_amount.toString(), period: b.period, start_date: b.start_date.split('T')[0], end_date: b.end_date.split('T')[0] });
+    setForm({ category: b.category, limit_amount: b.limit_amount.toString(), period: b.period, start_date: b.start_date.split('T')[0], end_date: b.end_date.split('T')[0], notes: b.notes || '' });
     setIsModalOpen(true);
   };
 
@@ -140,6 +140,7 @@ export default function BudgetingPage() {
                         <button onClick={() => handleDelete(b.id)} className="p-1.5 hover:bg-red-500/20 rounded-lg"><FiTrash2 size={13} className="text-red-400" /></button>
                       </div>
                     </div>
+                    {b.notes && <p className="text-sm text-white/50 mb-3 whitespace-pre-wrap">{b.notes}</p>}
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-white/60">Terpakai: <span className={over ? 'text-red-400 font-semibold' : 'text-white font-semibold'}>{formatCurrency(b.spent)}</span></span>
                       <span className="text-white/60">Batas: <span className="text-white font-semibold">{formatCurrency(b.limit_amount)}</span></span>
@@ -172,7 +173,7 @@ export default function BudgetingPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Batas Budget (Rp)</label>
-              <input required type="number" className="input-field" value={form.limit_amount} onChange={e => setForm({ ...form, limit_amount: e.target.value })} />
+              <PriceInput required className="input-field" value={form.limit_amount} onChange={limit_amount => setForm({ ...form, limit_amount })} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Periode</label>
@@ -186,6 +187,16 @@ export default function BudgetingPage() {
           <div>
             <label className="block text-sm font-medium mb-1">Mulai Tanggal</label>
             <input type="date" className="input-field" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Deskripsi / Catatan (opsional)</label>
+            <textarea
+              className="input-field"
+              rows={2}
+              value={form.notes}
+              onChange={e => setForm({ ...form, notes: e.target.value })}
+              placeholder="Tambahkan keterangan untuk budget ini"
+            />
           </div>
           <div className="pt-2 flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Batal</Button>

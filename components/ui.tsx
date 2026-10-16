@@ -131,6 +131,32 @@ export function Button({
   );
 }
 
+interface PriceInputProps {
+  value: string | number;
+  onChange: (value: string) => void;
+  required?: boolean;
+  min?: number;
+  className?: string;
+}
+
+export function PriceInput({ value, onChange, required = false, min = 0, className = '' }: PriceInputProps) {
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern={min > 0 ? '[0-9]*[1-9][0-9]*' : '[0-9]*'}
+      maxLength={11}
+      required={required}
+      className={className}
+      value={value}
+      onChange={e => {
+        const nextValue = e.target.value;
+        if (/^\d{0,11}$/.test(nextValue)) onChange(nextValue);
+      }}
+    />
+  );
+}
+
 // === MODAL COMPONENT ===
 interface ModalProps {
   isOpen: boolean;

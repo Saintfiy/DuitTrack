@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { Card, Button, Modal } from '@/components/ui';
+import { Card, Button, Modal, PriceInput } from '@/components/ui';
 import { FiPlus, FiEdit2, FiTrash2, FiFilter, FiDownload, FiLoader, FiImage } from 'react-icons/fi';
 import { formatCurrency, formatDate, exportToCSV } from '@/utils/helpers';
 import { useNotificationStore } from '@/store';
@@ -142,8 +142,8 @@ export default function TransactionsPage() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Jumlah (Rp)</label>
-          <input required type="number" min="1" className="input-field" value={formData.amount}
-            onChange={e => setFormData({ ...formData, amount: e.target.value })} />
+          <PriceInput required min={1} className="input-field" value={formData.amount}
+            onChange={amount => setFormData({ ...formData, amount })} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">

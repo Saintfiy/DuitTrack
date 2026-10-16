@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
-import { Card, Button } from '@/components/ui';
+import { Card, Button, PriceInput } from '@/components/ui';
 import { FiCamera, FiCheckCircle, FiRefreshCw, FiArrowRight, FiAlertCircle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotificationStore } from '@/store';
@@ -101,6 +101,10 @@ export default function ScanStrukPage() {
 
   const handleSave = async () => {
     if (!businessId || !parsed || !user) return;
+    if (!Number.isInteger(parsed.amount) || parsed.amount < 0 || parsed.amount > 99_999_999_999) {
+      addNotification('Jumlah struk harus maksimal 11 digit', 'error');
+      return;
+    }
     setSaving(true);
     try {
       let receipt_url = null;
@@ -281,8 +285,8 @@ export default function ScanStrukPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-white/60 mb-1">Jumlah (Rp)</label>
-                      <input type="number" className="input-field" value={parsed?.amount ?? ''}
-                        onChange={e => setParsed((p: any) => ({ ...(p ?? {}), amount: Number(e.target.value) }))} />
+                      <PriceInput className="input-field" value={parsed?.amount ?? ''}
+                        onChange={amount => setParsed((p: any) => ({ ...(p ?? {}), amount: amount === '' ? '' : Number(amount) }))} />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-white/60 mb-1">Tanggal</label>

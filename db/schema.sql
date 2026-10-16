@@ -148,9 +148,12 @@ CREATE TABLE IF NOT EXISTS budgets (
   period TEXT NOT NULL CHECK(period IN ('monthly', 'quarterly', 'yearly')),
   start_date TIMESTAMP WITH TIME ZONE NOT NULL,
   end_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL
 );
+
+ALTER TABLE budgets ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Create payment_methods table
 CREATE TABLE IF NOT EXISTS payment_methods (
@@ -398,4 +401,3 @@ CREATE POLICY "Users can upload documents" ON storage.objects
 DROP POLICY IF EXISTS "Users can upload logos" ON storage.objects;
 CREATE POLICY "Users can upload logos" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'logos' AND auth.uid() IS NOT NULL);
-
