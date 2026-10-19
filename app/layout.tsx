@@ -17,9 +17,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="DuitTrack" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="icon" href="/favicon.png?v=2" type="image/png" sizes="64x64" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
-        <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png?v=2" />
+        <link rel="icon" href="/duittrack-receipt-icon.png" type="image/png" sizes="64x64" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/duittrack-receipt-touch.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/duittrack-receipt-touch-precomposed.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="description" content="Pembukuan pintar untuk UMKM Indonesia. Kelola keuangan, inventori, dan pelanggan dalam satu platform." />
         <title>DuitTrack  Pembukuan Pintar untuk UMKM</title>
