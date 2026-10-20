@@ -196,6 +196,18 @@ function usePrefersReducedMotion() {
   return v;
 }
 
+function useShowRobotBackground() {
+  const [showRobot, setShowRobot] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const update = () => setShowRobot(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return showRobot;
+}
+
 /* ─── Page-load skeleton/intro ────────────────────────────── */
 function PageIntro({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -241,6 +253,7 @@ const stats = [
 export default function Home() {
   const reduced = usePrefersReducedMotion();
   const scrolled = useScrolled();
+  const showRobotBackground = useShowRobotBackground();
 
   /* Hero parallax */
   const heroRef = useRef<HTMLDivElement>(null);
@@ -276,21 +289,21 @@ export default function Home() {
     <PageIntro>
       <div className="relative min-h-screen bg-darker overflow-x-hidden">
 
-        {/* ── SPLINE ROBOT BACKGROUND ── */}
-        <div className="fixed inset-0 z-0 w-full h-full pointer-events-none overflow-hidden">
-          <iframe
-            src="https://my.spline.design/nexbotrobotcharacterconcept-FNsuGhtZ8mqBi4nYmcAU0QP3/"
-            frameBorder="0"
-            width="100%"
-            title="DuitTrack AI Robot Background"
-            className="w-full h-[calc(100%+80px)]"
-          />
-          {/* Subtle dark overlay  keeps robot visible but ensures text contrast */}
-          <div
-            className="absolute inset-0"
-            style={{ background: 'linear-gradient(to bottom, rgba(9,9,11,0.55) 0%, rgba(9,9,11,0.35) 45%, rgba(9,9,11,0.65) 100%)' }}
-          />
-        </div>
+        {showRobotBackground && (
+          <div className="fixed inset-0 z-0 w-full h-full pointer-events-none overflow-hidden">
+            <iframe
+              src="https://my.spline.design/nexbotrobotcharacterconcept-FNsuGhtZ8mqBi4nYmcAU0QP3/"
+              frameBorder="0"
+              width="100%"
+              title="DuitTrack AI Robot Background"
+              className="w-full h-[calc(100%+80px)]"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(to bottom, rgba(9,9,11,0.55) 0%, rgba(9,9,11,0.35) 45%, rgba(9,9,11,0.65) 100%)' }}
+            />
+          </div>
+        )}
 
         {/* ── PAGE CONTENT ── */}
         <div className="relative z-10">
