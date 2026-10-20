@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getUser } from '@/lib/authenticated-request';
 
 const CATEGORIES = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
 
@@ -13,10 +14,19 @@ const MODEL_PRIORITY = [
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await getUser(req);
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { imageBase64, mimeType } = await req.json();
 
-    if (!imageBase64 || !mimeType) {
-      return NextResponse.json({ error: 'imageBase64 dan mimeType wajib diisi' }, { status: 400 });
+    if (
+      typeof imageBase64 !== 'string'
+      || imageBase64.length > 12_000_000
+      || !['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)
+    ) {
+      return NextResponse.json(
+        { error: 'Gambar wajib berupa JPEG, PNG, atau WebP dan berukuran maksimal 9 MB' },
+        { status: 400 },
+      );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;

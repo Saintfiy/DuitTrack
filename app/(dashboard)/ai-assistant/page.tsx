@@ -218,9 +218,16 @@ export default function AIAssistantPage() {
         content: m.content
       }));
 
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!session) throw new Error('Sesi Anda telah berakhir. Silakan masuk kembali.');
+
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ messages: payloadMsgs, context: ctx })
       });
 

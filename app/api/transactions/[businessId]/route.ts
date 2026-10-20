@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getUser } from '@/lib/authenticated-request';
 
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ businessId: string }> }
 ) {
   try {
+    const auth = await getUser(request);
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { client } = auth;
     const { businessId } = await context.params;
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
 
-    let query = supabase
+    let query = client
       .from('transactions')
       .select('*')
       .eq('business_id', businessId);
@@ -36,14 +39,17 @@ export async function POST(
   context: { params: Promise<{ businessId: string }> }
 ) {
   try {
+    const auth = await getUser(request);
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { client } = auth;
     const { businessId } = await context.params;
     const body = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('transactions')
       .insert({
-        business_id: businessId,
         ...body,
+        business_id: businessId,
       })
       .select()
       .single();

@@ -22,6 +22,24 @@
 
 Atur `NEXT_PUBLIC_SITE_URL` ke URL publik aplikasi (contoh: `https://duittrack.example.com`). Tambahkan URL `https://duittrack.example.com/reset-password` ke daftar Redirect URLs di Supabase Dashboard → Authentication → URL Configuration, dan pastikan Site URL Supabase menggunakan domain produksi. Jika memakai template email kustom, tautan reset harus menggunakan `{{ .ConfirmationURL }}`.
 
+## Instalasi di Android dan iPhone
+
+DuitTrack dapat dipasang dari browser sebagai Progressive Web App (PWA) setelah tersedia di domain HTTPS:
+
+- **Android:** buka situs DuitTrack di Chrome, buka menu, lalu pilih **Install app** atau **Add to Home screen**.
+- **iPhone/iPad:** buka situs DuitTrack di Safari, tekan **Share**, lalu pilih **Add to Home Screen**.
+
+PWA menyimpan aset statis yang diperlukan, tetapi tidak menyimpan halaman akun atau data keuangan untuk penggunaan offline. Saat tidak ada koneksi, aplikasi menampilkan halaman offline dan meminta pengguna tersambung kembali.
+
+## Environment production
+
+Atur environment variables berikut langsung di dashboard hosting. Jangan commit nilainya, terutama secret server:
+
+- Wajib: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (boleh menggunakan Supabase publishable key), `SUPABASE_SERVICE_ROLE_KEY` (Supabase secret key server-only), dan `JWT_SECRET` (minimal 32 byte).
+- Untuk alur reset password: `NEXT_PUBLIC_SITE_URL` harus berisi URL production HTTPS dan URL `/reset-password` harus diizinkan di Supabase Auth.
+- Fitur AI memerlukan `OPENROUTER_API_KEY` (asisten) dan/atau `GEMINI_API_KEY` (OCR).
+- `ENCRYPTION_KEY` hanya diperlukan jika utilitas enkripsi dipakai; nilainya harus tepat 32 byte UTF-8.
+
 ## Struktur Halaman
 
 ```

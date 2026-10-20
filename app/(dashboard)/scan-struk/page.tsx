@@ -32,9 +32,16 @@ async function runGeminiOCR(file: File): Promise<{
     reader.readAsDataURL(file);
   });
 
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (!session) throw new Error('Sesi Anda telah berakhir. Silakan masuk kembali.');
+
   const res = await fetch('/api/ocr', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
     body: JSON.stringify({ imageBase64: base64, mimeType: file.type }),
   });
 

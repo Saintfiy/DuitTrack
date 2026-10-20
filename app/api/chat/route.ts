@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
+import { getUser } from '@/lib/authenticated-request';
 
 export async function POST(req: Request) {
   try {
+    const auth = await getUser(req);
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
     const { messages, context } = body;
 
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: 'Messages are required' }, { status: 400 });
+    if (!Array.isArray(messages) || !context || typeof context !== 'object') {
+      return NextResponse.json({ error: 'Messages and context are required' }, { status: 400 });
     }
 
     const apiKey = process.env.OPENROUTER_API_KEY;

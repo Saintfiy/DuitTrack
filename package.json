@@ -22,17 +22,12 @@
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "9.0.2",
     "next": "^16.2.4",
-    "next-pwa": "^2.6.3",
     "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.3.1",
     "react-helmet-async": "^2.0.4",
     "react-icons": "^5.0.1",
     "recharts": "^2.12.0",
-    "tailwindcss": "^3.4.1",
-    "uuid": "^9.0.1",
-    "workbox-window": "^7.0.0",
-    "xlsx": "^0.18.5",
     "zod": "^3.22.4",
     "zustand": "^4.5.0"
   },
@@ -41,11 +36,18 @@
     "@types/node": "^20.11.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.17",
+    "autoprefixer": "^10.6.1",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
     "knip": "^6.38.0",
-    "postcss": "^8.4.33",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "@next/eslint-plugin-next": {
+      "glob": "^10.5.0"
+    },
+    "postcss-nested": "^7.0.2"
   }
 }

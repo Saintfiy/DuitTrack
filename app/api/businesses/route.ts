@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getUser } from '@/lib/authenticated-request';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
-    if (!userId) throw new Error('Unauthorized');
+    const auth = await getUser(request);
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { client, user } = auth;
 
-    const { data, error } = await supabase
+    const { data: profile, error: profileError } = await client
+      .from('users')
+      .select('business_id')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (profileError) throw profileError;
+
+    const filters = [`owner_id.eq.${user.id}`];
+    if (profile?.business_id) filters.push(`id.eq.${profile.business_id}`);
+
+    const { data, error } = await client
       .from('businesses')
       .select('*')
-      .or(`owner_id.eq.${userId},id.in.(select business_id from users where id = ${userId})`);
+      .or(filters.join(','));
 
     if (error) throw error;
 
@@ -21,16 +32,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
-    if (!userId) throw new Error('Unauthorized');
+    const auth = await getUser(request);
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { client, user } = auth;
 
     const body = await request.json();
+    if (!body || typeof body.name !== 'string' || !body.name.trim()) {
+      return NextResponse.json({ error: 'Business name is required' }, { status: 400 });
+    }
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('businesses')
       .insert({
-        owner_id: userId,
-        ...body,
+        name: body.name.trim(),
+        industry: body.industry,
+        country: body.country,
+        currency: body.currency,
+        owner_id: user.id,
       })
       .select()
       .single();
