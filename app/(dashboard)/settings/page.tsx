@@ -6,7 +6,7 @@ import { Card, Button } from '@/components/ui';
 import {
   FiSave, FiUserCheck, FiLock, FiBell, FiGlobe,
   FiToggleLeft, FiToggleRight, FiShield, FiLogOut,
-  FiCamera, FiUser,
+  FiCamera, FiUser, FiX, FiZoomIn,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useNotificationStore } from '@/store';
@@ -28,6 +28,7 @@ const SettingsPage = () => {
   const [savingPassword, setSavingPassword] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarZoom, setAvatarZoom] = useState(1);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ const SettingsPage = () => {
     }
   }, [business]);
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
@@ -73,21 +74,59 @@ const SettingsPage = () => {
       return;
     }
 
-    // Tampilkan preview lokal dulu
     const reader = new FileReader();
-    reader.onload = e => setAvatarPreview(e.target?.result as string);
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        addNotification('Foto tidak dapat dibaca. Coba pilih file lain.', 'error');
+        return;
+      }
+      setAvatarPreview(reader.result);
+      setAvatarZoom(1);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+    reader.onerror = () => {
+      addNotification('Foto tidak dapat dibaca. Coba pilih file lain.', 'error');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
     reader.readAsDataURL(file);
+  };
 
+  const handleSaveAvatar = async () => {
+    if (!avatarPreview || !user) return;
     setUploadingAvatar(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      // Pakai timestamp agar selalu INSERT baru (hindari UPDATE policy)
-      const filePath = `avatars/${user.id}_${Date.now()}.${fileExt}`;
+      const image = new Image();
+      const imageLoaded = new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error('Foto tidak dapat diproses. Coba pilih file lain.'));
+      });
+      image.src = avatarPreview;
+      await imageLoaded;
+
+      const cropSize = Math.min(image.naturalWidth, image.naturalHeight) / avatarZoom;
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Browser tidak dapat memproses foto ini.');
+
+      const sourceX = (image.naturalWidth - cropSize) / 2;
+      const sourceY = (image.naturalHeight - cropSize) / 2;
+      context.drawImage(image, sourceX, sourceY, cropSize, cropSize, 0, 0, canvas.width, canvas.height);
+      const croppedBlob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          blob => blob ? resolve(blob) : reject(new Error('Foto gagal diproses. Coba lagi.')),
+          'image/jpeg',
+          0.9,
+        );
+      });
+      const croppedFile = new File([croppedBlob], `avatar-${user.id}.jpg`, { type: 'image/jpeg' });
+      const filePath = `avatars/${user.id}_${Date.now()}.jpg`;
 
       // Upload ke Supabase Storage bucket "logos" (public)
       const { error: uploadError } = await supabase.storage
         .from('logos')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+        .upload(filePath, croppedFile, { cacheControl: '3600', upsert: false });
 
       if (uploadError) throw uploadError;
 
@@ -107,11 +146,9 @@ const SettingsPage = () => {
       setAvatarPreview(null);
       addNotification('Foto profil berhasil diperbarui!', 'success');
     } catch (err: any) {
-      setAvatarPreview(null);
       addNotification(err.message || 'Gagal mengupload foto', 'error');
     } finally {
       setUploadingAvatar(false);
-      // Reset input agar file yang sama bisa dipilih ulang
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -203,7 +240,7 @@ const SettingsPage = () => {
     }
   };
 
-  const displayAvatar = avatarPreview || avatarUrl;
+  const displayAvatar = avatarUrl;
   const initials = profileData.full_name
     ? profileData.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
@@ -411,6 +448,77 @@ const SettingsPage = () => {
           </div>
         </Card>
       </div>
+
+      {avatarPreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="avatar-crop-title"
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-dark p-5 shadow-2xl"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h2 id="avatar-crop-title" className="font-bold">Sesuaikan foto profil</h2>
+                <p className="mt-1 text-xs text-white/50">Geser zoom agar foto terlihat pas.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAvatarPreview(null)}
+                disabled={uploadingAvatar}
+                aria-label="Tutup"
+                className="rounded-lg p-2 text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+
+            <div className="mx-auto mb-6 h-56 w-56 overflow-hidden rounded-full border border-white/15 bg-black/30">
+              <img
+                src={avatarPreview}
+                alt="Pratinjau potongan foto profil"
+                className="h-full w-full object-cover transition-transform duration-150"
+                style={{ transform: `scale(${avatarZoom})` }}
+              />
+            </div>
+
+            <label htmlFor="avatar-zoom" className="mb-2 flex items-center justify-between text-sm text-white/70">
+              <span className="flex items-center gap-2"><FiZoomIn /> Perbesar foto</span>
+              <span>{avatarZoom.toFixed(1)}×</span>
+            </label>
+            <input
+              id="avatar-zoom"
+              type="range"
+              min="1"
+              max="3"
+              step="0.05"
+              value={avatarZoom}
+              onChange={e => setAvatarZoom(Number(e.target.value))}
+              disabled={uploadingAvatar}
+              className="mb-6 w-full accent-primary"
+            />
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setAvatarPreview(null)}
+                disabled={uploadingAvatar}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveAvatar}
+                disabled={uploadingAvatar}
+              >
+                {uploadingAvatar ? 'Mengupload...' : 'Simpan foto'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
