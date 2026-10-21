@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, Button, PriceInput } from '@/components/ui';
-import { FiCamera, FiCheckCircle, FiRefreshCw, FiArrowRight, FiAlertCircle } from 'react-icons/fi';
+import { FiCamera, FiImage, FiCheckCircle, FiRefreshCw, FiArrowRight, FiAlertCircle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotificationStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,6 +59,8 @@ export default function ScanStrukPage() {
   const { user, businessId } = useAuth({ requireAuth: true });
   const { addNotification } = useNotificationStore();
   const router = useRouter();
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<'upload' | 'scanning' | 'review' | 'done'>('upload');
   const [preview, setPreview] = useState<string | null>(null);
@@ -194,17 +196,45 @@ export default function ScanStrukPage() {
                 <div
                   onDrop={handleDrop}
                   onDragOver={e => e.preventDefault()}
-                  onClick={() => document.getElementById('struk-file')?.click()}
-                  className="border-2 border-dashed border-white/20 rounded-2xl p-12 text-center hover:border-primary/50 hover:bg-white/5 transition-smooth cursor-pointer"
+                  className="border-2 border-dashed border-white/20 rounded-2xl p-6 sm:p-10 text-center"
                 >
                   <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <FiCamera size={32} className="text-white/30" />
                   </div>
                   <p className="font-semibold text-lg mb-2">Upload Foto Struk</p>
-                  <p className="text-white/50 text-sm mb-4">Drag & drop atau klik untuk pilih foto</p>
-                  <p className="text-xs text-white/30">Mendukung JPG, PNG, WEBP</p>
-                  <input id="struk-file" type="file" accept="image/*" capture="environment" className="hidden"
-                    onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+                  <p className="text-white/50 text-sm mb-5">Ambil foto langsung atau pilih gambar yang sudah tersimpan.</p>
+                  <div className="flex flex-col justify-center gap-2 sm:flex-row">
+                    <Button type="button" variant="secondary" className="justify-center" onClick={() => cameraInputRef.current?.click()}>
+                      <FiCamera size={15} /> Ambil Foto
+                    </Button>
+                    <Button type="button" variant="primary" className="justify-center" onClick={() => galleryInputRef.current?.click()}>
+                      <FiImage size={15} /> Pilih dari Galeri
+                    </Button>
+                  </div>
+                  <p className="text-xs text-white/30 mt-4">Atau drag & drop gambar di sini · JPG, PNG, WEBP</p>
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.currentTarget.files?.[0];
+                      if (file) void handleFile(file);
+                      e.currentTarget.value = '';
+                    }}
+                  />
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.currentTarget.files?.[0];
+                      if (file) void handleFile(file);
+                      e.currentTarget.value = '';
+                    }}
+                  />
                 </div>
                 <div className="mt-4 p-4 bg-accent/10 border border-accent/20 rounded-xl">
                   <p className="text-sm text-accent font-semibold mb-1">💡 Tips untuk hasil terbaik:</p>
