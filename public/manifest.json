@@ -4,7 +4,7 @@
   "description": "Pembukuan pintar untuk UMKM Indonesia",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0B0F1A",
+  "background_color": "#18181B",
   "theme_color": "#18181B",
   "orientation": "portrait-primary",
   "icons": [
