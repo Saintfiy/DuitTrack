@@ -48,7 +48,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function DashboardPage() {
-  const { businessId, business, loading: authLoading } = useAuth({ requireAuth: true });
+  const { user, businessId, business, loading: authLoading } = useAuth({ requireAuth: true });
   const isPersonal = business?.workspace_type === 'personal';
   const [timeFilter, setTimeFilter] = useState(6);
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
@@ -160,7 +160,7 @@ export default function DashboardPage() {
               {isPersonal ? 'Ringkasan Pribadi' : 'Dashboard Bisnis'}
             </p>
             <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-              {isPersonal ? 'Keuangan Pribadi' : business?.name || 'Bisnis Anda'}
+              {isPersonal ? user?.full_name || user?.email || 'Keuangan Pribadi' : business?.name || 'Bisnis Anda'}
             </h1>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
