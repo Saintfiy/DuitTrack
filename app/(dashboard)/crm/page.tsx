@@ -9,9 +9,11 @@ import { motion } from 'framer-motion';
 import { useNotificationStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function CRMPage() {
-  const { businessId, loading: authLoading } = useAuth({ requireAuth: true });
+  const { businessId, business, loading: authLoading } = useAuth({ requireAuth: true });
+  const router = useRouter();
   const { addNotification } = useNotificationStore();
 
   const [customers, setCustomers] = useState<any[]>([]);
@@ -39,12 +41,18 @@ export default function CRMPage() {
 
   useEffect(() => { 
     if (authLoading) return;
+    if (business?.workspace_type === 'personal') {
+      router.replace('/dashboard');
+      return;
+    }
     if (!businessId) {
       setLoading(false);
       return;
     }
     fetchCustomers(); 
-  }, [authLoading, businessId, fetchCustomers]);
+  }, [authLoading, business?.workspace_type, businessId, fetchCustomers, router]);
+
+  if (business?.workspace_type === 'personal') return null;
 
   const filtered = customers.filter(c =>
     !search || c.name?.toLowerCase().includes(search.toLowerCase()) ||

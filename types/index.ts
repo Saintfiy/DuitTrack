@@ -15,6 +15,7 @@ export interface User {
 export interface Business {
   id: string;
   name: string;
+  workspace_type?: 'business' | 'personal';
   owner_id: string;
   logo_url?: string;
   industry: string;

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
+  workspace_type TEXT NOT NULL DEFAULT 'business' CHECK(workspace_type IN ('business', 'personal')),
   logo_url TEXT,
   industry TEXT,
   country TEXT,

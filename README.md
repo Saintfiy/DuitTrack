@@ -40,6 +40,12 @@ Atur environment variables berikut langsung di dashboard hosting. Jangan commit 
 - Fitur AI memerlukan `OPENROUTER_API_KEY` (asisten) dan/atau `GEMINI_API_KEY` (OCR).
 - `ENCRYPTION_KEY` hanya diperlukan jika utilitas enkripsi dipakai; nilainya harus tepat 32 byte UTF-8.
 
+## Jenis pencatatan
+
+Pendaftaran menyediakan pilihan workspace Bisnis atau Pribadi. Workspace Pribadi berfokus pada transaksi, hutang/piutang, budgeting, cashflow, laporan, scan struk, dan asisten AI; menu inventori dan pelanggan hanya tersedia untuk workspace Bisnis.
+
+Sebelum mengaktifkan versi aplikasi yang menyediakan pilihan tersebut, jalankan `db/migrations/20261021_add_workspace_type.sql` di Supabase SQL Editor. Migrasi ini menambahkan tipe workspace dan mempertahankan data workspace lama sebagai Bisnis.
+
 ## Struktur Halaman
 
 ```

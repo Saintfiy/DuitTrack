@@ -9,9 +9,11 @@ import { formatCurrency, exportToCSV } from '@/utils/helpers';
 import { useNotificationStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function InventoryPage() {
-  const { businessId, loading: authLoading } = useAuth({ requireAuth: true });
+  const { businessId, business, loading: authLoading } = useAuth({ requireAuth: true });
+  const router = useRouter();
   const { addNotification } = useNotificationStore();
 
   const [inventory, setInventory] = useState<any[]>([]);
@@ -38,12 +40,18 @@ export default function InventoryPage() {
 
   useEffect(() => { 
     if (authLoading) return;
+    if (business?.workspace_type === 'personal') {
+      router.replace('/dashboard');
+      return;
+    }
     if (!businessId) {
       setLoading(false);
       return;
     }
     fetchInventory(); 
-  }, [authLoading, businessId, fetchInventory]);
+  }, [authLoading, business?.workspace_type, businessId, fetchInventory, router]);
+
+  if (business?.workspace_type === 'personal') return null;
 
   const lowStockItems = inventory.filter(i => i.quantity <= i.reorder_level);
   const totalValue = inventory.reduce((sum, i) => sum + i.quantity * i.unit_price, 0);

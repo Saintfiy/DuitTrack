@@ -98,5 +98,6 @@ export function useAuth({ requireAuth = false } = {}) {
     logout,
     isAuthenticated: !!user,
     businessId: business?.id ?? null,
+    workspaceType: business?.workspace_type ?? 'business',
   };
 }

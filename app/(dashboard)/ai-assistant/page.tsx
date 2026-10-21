@@ -25,6 +25,15 @@ const QUICK = [
   'Apakah bisnis saya untung?',
 ];
 
+const PERSONAL_QUICK = [
+  'Bagaimana kondisi keuangan pribadi saya?',
+  'Pengeluaran terbesar bulan ini?',
+  'Berapa sisa pemasukan saya?',
+  'Apakah anggaran saya masih aman?',
+  'Ringkasan hutang dan piutang saya',
+  'Prediksi arus kas bulan depan',
+];
+
 function smartReply(msg: string, ctx: ReturnType<typeof buildContext> extends Promise<infer T> ? T : never): string {
   const q = msg.toLowerCase();
   const { totalRevenue, totalExpense, profit, margin, monthRevenue, monthExpense, monthProfit,
@@ -136,17 +145,19 @@ function smartReply(msg: string, ctx: ReturnType<typeof buildContext> extends Pr
   return `Saya asisten keuangan bisnis Anda. Berdasarkan **${txCount} transaksi** yang tercatat, ini yang bisa saya bantu:\n\n📊 **Analisis Tersedia:**\n• Kondisi & kesehatan bisnis secara keseluruhan\n• Laba, margin, dan tren keuntungan\n• Kategori pengeluaran terbesar\n• Status hutang & piutang\n• Stok inventori kritis\n• Cashflow & prediksi keuangan\n• Rekomendasi hemat biaya\n\n💬 Coba tanyakan salah satu topik di atas, atau klik pertanyaan cepat di bawah!`;
 }
 
-async function buildContext(businessId: string) {
+async function buildContext(businessId: string, workspaceType: 'business' | 'personal') {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-  const [{ data: txAll }, { data: txMonth }, { data: inv }, { data: debts }, { data: budgets }] = await Promise.all([
+  const [{ data: txAll }, { data: txMonth }, { data: debts }, { data: budgets }] = await Promise.all([
     supabase.from('transactions').select('type,amount,category,date').eq('business_id', businessId),
     supabase.from('transactions').select('type,amount,category').eq('business_id', businessId).gte('date', monthStart),
-    supabase.from('inventory').select('name,quantity,reorder_level,unit_price').eq('business_id', businessId),
     supabase.from('debts').select('type,amount,status,customer_name,due_date').eq('business_id', businessId),
     supabase.from('budgets').select('category,limit_amount,period').eq('business_id', businessId),
   ]);
+  const inv = workspaceType === 'personal'
+    ? []
+    : (await supabase.from('inventory').select('name,quantity,reorder_level,unit_price').eq('business_id', businessId)).data || [];
 
   const allTx = txAll || [];
   const monthTx = txMonth || [];
@@ -166,6 +177,7 @@ async function buildContext(businessId: string) {
   const totalPayable = (debts || []).filter(d => d.type === 'payable' && d.status !== 'paid').reduce((s, d) => s + d.amount, 0);
 
   return {
+    workspaceType,
     totalRevenue, totalExpense, profit: totalRevenue - totalExpense,
     margin: totalRevenue > 0 ? ((totalRevenue - totalExpense) / totalRevenue * 100) : 0,
     monthRevenue, monthExpense, monthProfit: monthRevenue - monthExpense,
@@ -178,7 +190,7 @@ async function buildContext(businessId: string) {
 
 
 export default function AIAssistantPage() {
-  const { businessId, loading: authLoading } = useAuth({ requireAuth: true });
+  const { businessId, workspaceType, loading: authLoading } = useAuth({ requireAuth: true });
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
@@ -189,10 +201,10 @@ export default function AIAssistantPage() {
   const loadCtx = useCallback(async () => {
     if (!businessId) return;
     setLoadingCtx(true);
-    const data = await buildContext(businessId);
+    const data = await buildContext(businessId, workspaceType);
     setCtx(data);
     setLoadingCtx(false);
-  }, [businessId]);
+  }, [businessId, workspaceType]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -290,7 +302,7 @@ export default function AIAssistantPage() {
           {/* Quick questions (Always visible) */}
           {!loadingCtx && (
             <div className="flex overflow-x-auto pb-2 gap-2 hide-scrollbar">
-              {QUICK.map(q => (
+              {(workspaceType === 'personal' ? PERSONAL_QUICK : QUICK).map(q => (
                 <button key={q} onClick={() => send(q)} className="flex-shrink-0 text-xs px-3 py-2 border border-white/15 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-smooth">
                   {q}
                 </button>

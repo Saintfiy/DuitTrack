@@ -40,11 +40,15 @@ export async function POST(request: NextRequest) {
     if (!body || typeof body.name !== 'string' || !body.name.trim()) {
       return NextResponse.json({ error: 'Business name is required' }, { status: 400 });
     }
+    if (body.workspace_type !== undefined && !['business', 'personal'].includes(body.workspace_type)) {
+      return NextResponse.json({ error: 'Invalid workspace type' }, { status: 400 });
+    }
 
     const { data, error } = await client
       .from('businesses')
       .insert({
         name: body.name.trim(),
+        workspace_type: body.workspace_type ?? 'business',
         industry: body.industry,
         country: body.country,
         currency: body.currency,

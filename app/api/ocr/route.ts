@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getUser } from '@/lib/authenticated-request';
 
 const CATEGORIES = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
+const PERSONAL_CATEGORIES = ['Makanan & Minuman', 'Tagihan', 'Transportasi', 'Belanja', 'Kesehatan', 'Pendidikan', 'Hiburan', 'Lainnya'];
 
 // Urutan model: lite dulu (quota terpisah), baru yang besar
 const MODEL_PRIORITY = [
@@ -17,6 +18,25 @@ export async function POST(req: NextRequest) {
     const auth = await getUser(req);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { imageBase64, mimeType } = await req.json();
+
+    const { data: profile, error: profileError } = await auth.client
+      .from('users')
+      .select('business_id')
+      .eq('id', auth.user.id)
+      .maybeSingle();
+    if (profileError) throw profileError;
+
+    let workspaceType: 'business' | 'personal' = 'business';
+    if (profile?.business_id) {
+      const { data: workspace, error: workspaceError } = await auth.client
+        .from('businesses')
+        .select('workspace_type')
+        .eq('id', profile.business_id)
+        .maybeSingle();
+      if (workspaceError) throw workspaceError;
+      if (workspace?.workspace_type === 'personal') workspaceType = 'personal';
+    }
+    const categories = workspaceType === 'personal' ? PERSONAL_CATEGORIES : CATEGORIES;
 
     if (
       typeof imageBase64 !== 'string'
@@ -36,13 +56,13 @@ export async function POST(req: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const prompt = `Kamu adalah asisten OCR untuk struk belanja/pembayaran bisnis Indonesia.
+    const prompt = `Kamu adalah asisten OCR untuk struk belanja/pembayaran ${workspaceType === 'personal' ? 'pribadi' : 'bisnis'} Indonesia.
 Analisis gambar struk ini dan ekstrak informasi berikut dalam format JSON.
 
 Instruksi:
 - "amount": total pembayaran dalam angka integer (tanpa titik/koma pemisah), contoh: 45000
 - "description": deskripsi singkat transaksi dalam Bahasa Indonesia (maks 60 karakter), contoh: "Pembelian ATK di Gramedia"
-- "category": pilih SATU dari kategori berikut yang paling sesuai: ${CATEGORIES.join(', ')}
+- "category": pilih SATU dari kategori berikut yang paling sesuai: ${categories.join(', ')}
 - "date": tanggal transaksi dalam format YYYY-MM-DD. Jika tidak ada tanggal, gunakan hari ini: ${new Date().toISOString().split('T')[0]}
 - "merchant": nama toko/merchant jika ada, atau null
 
@@ -85,7 +105,7 @@ Balas HANYA dengan JSON murni tanpa markdown, tanpa penjelasan:
         // Validasi & sanitasi
         const amount = Math.abs(Number(parsed.amount) || 0);
         const description = String(parsed.description || 'Transaksi dari struk').slice(0, 120);
-        const category = CATEGORIES.includes(parsed.category) ? parsed.category : 'Lainnya';
+        const category = categories.includes(parsed.category) ? parsed.category : 'Lainnya';
         const date = /^\d{4}-\d{2}-\d{2}$/.test(parsed.date ?? '')
           ? parsed.date
           : new Date().toISOString().split('T')[0];

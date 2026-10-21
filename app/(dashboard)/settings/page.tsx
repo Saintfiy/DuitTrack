@@ -14,7 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
 const SettingsPage = () => {
-  const { user, business, logout } = useAuth({ requireAuth: true });
+  const { user, business, workspaceType, logout } = useAuth({ requireAuth: true });
+  const isPersonal = workspaceType === 'personal';
   const { addNotification } = useNotificationStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -288,29 +289,31 @@ const SettingsPage = () => {
           </form>
         </Card>
 
-        {/* Bisnis */}
+        {/* Workspace */}
         <Card>
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <FiGlobe /> Pengaturan Bisnis
+            <FiGlobe /> {isPersonal ? 'Pengaturan Pribadi' : 'Pengaturan Bisnis'}
           </h3>
           <form onSubmit={handleSaveBusiness} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">Nama Bisnis</label>
+              <label className="block text-sm font-medium text-white/80 mb-2">{isPersonal ? 'Nama pencatatan' : 'Nama Bisnis'}</label>
               <input type="text" className="input-field" value={businessData.name}
                 onChange={e => setBusinessData({ ...businessData, name: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">Industri</label>
-                <select className="input-field" value={businessData.industry}
-                  onChange={e => setBusinessData({ ...businessData, industry: e.target.value })}>
-                  <option value="retail">Retail</option>
-                  <option value="food">Food & Beverage</option>
-                  <option value="services">Jasa</option>
-                  <option value="manufacturing">Manufaktur</option>
-                  <option value="other">Lainnya</option>
-                </select>
-              </div>
+              {!isPersonal && (
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Industri</label>
+                  <select className="input-field" value={businessData.industry}
+                    onChange={e => setBusinessData({ ...businessData, industry: e.target.value })}>
+                    <option value="retail">Retail</option>
+                    <option value="food">Food & Beverage</option>
+                    <option value="services">Jasa</option>
+                    <option value="manufacturing">Manufaktur</option>
+                    <option value="other">Lainnya</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">Mata Uang</label>
                 <select className="input-field" value={businessData.currency}
@@ -322,20 +325,22 @@ const SettingsPage = () => {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">Telepon Bisnis</label>
-                <input type="tel" className="input-field" value={businessData.phone}
-                  onChange={e => setBusinessData({ ...businessData, phone: e.target.value })} />
+            {!isPersonal && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Telepon Bisnis</label>
+                  <input type="tel" className="input-field" value={businessData.phone}
+                    onChange={e => setBusinessData({ ...businessData, phone: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Alamat</label>
+                  <input type="text" className="input-field" value={businessData.address}
+                    onChange={e => setBusinessData({ ...businessData, address: e.target.value })} />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">Alamat</label>
-                <input type="text" className="input-field" value={businessData.address}
-                  onChange={e => setBusinessData({ ...businessData, address: e.target.value })} />
-              </div>
-            </div>
+            )}
             <Button type="submit" variant="primary" size="sm" disabled={savingBusiness}>
-              <FiSave /> {savingBusiness ? 'Menyimpan...' : 'Simpan Bisnis'}
+              <FiSave /> {savingBusiness ? 'Menyimpan...' : isPersonal ? 'Simpan Pengaturan' : 'Simpan Bisnis'}
             </Button>
           </form>
         </Card>
@@ -373,7 +378,9 @@ const SettingsPage = () => {
               { title: 'Peringatan Stok Rendah', desc: 'Notifikasi saat item hampir habis' },
               { title: 'Pengingat Transaksi', desc: 'Ringkasan transaksi harian' },
               { title: 'Laporan Bulanan', desc: 'Laporan keuangan bulanan otomatis' },
-            ].map((notif, idx) => (
+            ].map((notif, idx) => ({ notif, idx }))
+              .filter(({ idx }) => !isPersonal || idx !== 0)
+              .map(({ notif, idx }) => (
               <div key={idx} className="flex items-center justify-between p-4 border border-white/10 rounded-xl">
                 <div>
                   <p className="font-semibold">{notif.title}</p>

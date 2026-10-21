@@ -49,6 +49,7 @@ function CustomTooltip({ active, payload, label }: any) {
 
 export default function DashboardPage() {
   const { businessId, business, loading: authLoading } = useAuth({ requireAuth: true });
+  const isPersonal = business?.workspace_type === 'personal';
   const [timeFilter, setTimeFilter] = useState(6);
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
@@ -60,18 +61,22 @@ export default function DashboardPage() {
     if (!businessId) return;
     setLoading(true);
     const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
-    const [{ data: txData }, { data: invData }, { data: custData }, { data: recentData }] = await Promise.all([
+    const [{ data: txData }, { data: recentData }] = await Promise.all([
       supabase.from('transactions').select('*').eq('business_id', businessId).gte('date', yearStart),
-      supabase.from('inventory').select('quantity, unit_price').eq('business_id', businessId),
-      supabase.from('customers').select('name, total_purchased, total_transactions').eq('business_id', businessId).order('total_purchased', { ascending: false }).limit(5),
       supabase.from('transactions').select('*').eq('business_id', businessId).order('date', { ascending: false }).limit(5),
     ]);
+    const [{ data: invData }, { data: custData }] = isPersonal
+      ? [{ data: [] }, { data: [] }]
+      : await Promise.all([
+          supabase.from('inventory').select('quantity, unit_price').eq('business_id', businessId),
+          supabase.from('customers').select('name, total_purchased, total_transactions').eq('business_id', businessId).order('total_purchased', { ascending: false }).limit(5),
+        ]);
     setAllTransactions(txData || []);
     setInventory(invData || []);
     setTopCustomers(custData || []);
     setRecentTransactions(recentData || []);
     setLoading(false);
-  }, [businessId]);
+  }, [businessId, isPersonal]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -153,7 +158,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-white/40 text-sm font-medium uppercase tracking-widest mb-1">Selamat datang kembali 👋</p>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-              {business?.name || 'Bisnis Anda'}
+              {isPersonal ? 'Keuangan Pribadi' : business?.name || 'Bisnis Anda'}
             </h1>
           </div>
           <div className="flex gap-3">
@@ -198,10 +203,10 @@ export default function DashboardPage() {
             key={timeFilter}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4"
+            className={`grid grid-cols-2 ${isPersonal ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-3 md:gap-4`}
           >
             <StatCard
-              label="Total Pendapatan"
+              label={isPersonal ? 'Total Pemasukan' : 'Total Pendapatan'}
               value={formatCurrency(stats.totalRevenue)}
               compact={formatCurrencyCompact(stats.totalRevenue)}
               icon={<FiDollarSign />}
@@ -217,19 +222,21 @@ export default function DashboardPage() {
               color="red"
             />
             <StatCard
-              label="Laba Bersih"
+              label={isPersonal ? 'Selisih Bersih' : 'Laba Bersih'}
               value={formatCurrency(stats.profit)}
               compact={formatCurrencyCompact(stats.profit)}
               icon={<FiTrendingUp />}
               color={stats.profit >= 0 ? 'primary' : 'secondary'}
             />
-            <StatCard
-              label="Nilai Inventori"
-              value={formatCurrency(stats.inventoryValue)}
-              compact={formatCurrencyCompact(stats.inventoryValue)}
-              icon={<FiBox />}
-              color="accent"
-            />
+            {!isPersonal && (
+              <StatCard
+                label="Nilai Inventori"
+                value={formatCurrency(stats.inventoryValue)}
+                compact={formatCurrencyCompact(stats.inventoryValue)}
+                icon={<FiBox />}
+                color="accent"
+              />
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -254,10 +261,10 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-bold">Tren Keuangan</h3>
-                  <p className="text-white/40 text-xs mt-0.5">Pendapatan & Pengeluaran</p>
+                  <p className="text-white/40 text-xs mt-0.5">{isPersonal ? 'Pemasukan & Pengeluaran' : 'Pendapatan & Pengeluaran'}</p>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-white/50">
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full bg-primary inline-block" /> Pendapatan</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full bg-primary inline-block" /> {isPersonal ? 'Pemasukan' : 'Pendapatan'}</span>
                   <span className="flex items-center gap-1.5"><span className="w-3 h-1 rounded-full bg-secondary inline-block" /> Pengeluaran</span>
                 </div>
               </div>
@@ -277,14 +284,14 @@ export default function DashboardPage() {
                   <XAxis dataKey="bulan" stroke="transparent" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 12 }} axisLine={false} />
                   <YAxis stroke="transparent" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} tickFormatter={v => `${(v / 1000000).toFixed(0)}jt`} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="pendapatan" name="Pendapatan" stroke="#8B5CF6" strokeWidth={2.5} fill="url(#gradPendapatan)" dot={false} activeDot={{ r: 5, strokeWidth: 0, fill: '#8B5CF6' }} />
+                  <Area type="monotone" dataKey="pendapatan" name={isPersonal ? 'Pemasukan' : 'Pendapatan'} stroke="#8B5CF6" strokeWidth={2.5} fill="url(#gradPendapatan)" dot={false} activeDot={{ r: 5, strokeWidth: 0, fill: '#8B5CF6' }} />
                   <Area type="monotone" dataKey="pengeluaran" name="Pengeluaran" stroke="#EC4899" strokeWidth={2.5} fill="url(#gradPengeluaran)" dot={false} activeDot={{ r: 5, strokeWidth: 0, fill: '#EC4899' }} />
                 </AreaChart>
               </ResponsiveContainer>
             </motion.div>
 
             {/* ─── Bottom Grid ─── */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className={`grid grid-cols-1 ${isPersonal ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-4 md:gap-6`}>
               {/* Kategori Pengeluaran */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -363,7 +370,7 @@ export default function DashboardPage() {
               </motion.div>
 
               {/* Pelanggan Teratas */}
-              <motion.div
+              {!isPersonal && <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -400,7 +407,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
-              </motion.div>
+              </motion.div>}
             </div>
           </>
         )}

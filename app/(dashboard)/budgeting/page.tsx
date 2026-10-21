@@ -10,19 +10,29 @@ import { useNotificationStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
+const BUSINESS_CATEGORIES = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
+const PERSONAL_CATEGORIES = ['Makanan & Minuman', 'Tagihan', 'Transportasi', 'Belanja', 'Kesehatan', 'Pendidikan', 'Hiburan', 'Lainnya'];
 
-const emptyForm = { category: 'Operasional', limit_amount: '', period: 'monthly' as 'monthly' | 'quarterly' | 'yearly', start_date: new Date().toISOString().split('T')[0], end_date: '', notes: '' };
+const createEmptyForm = (isPersonal: boolean) => ({
+  category: isPersonal ? 'Makanan & Minuman' : 'Operasional',
+  limit_amount: '',
+  period: 'monthly' as 'monthly' | 'quarterly' | 'yearly',
+  start_date: new Date().toISOString().split('T')[0],
+  end_date: '',
+  notes: '',
+});
 
 export default function BudgetingPage() {
-  const { businessId, loading: authLoading } = useAuth({ requireAuth: true });
+  const { businessId, workspaceType, loading: authLoading } = useAuth({ requireAuth: true });
+  const isPersonal = workspaceType === 'personal';
+  const categories = isPersonal ? PERSONAL_CATEGORIES : BUSINESS_CATEGORIES;
   const { addNotification } = useNotificationStore();
   const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => createEmptyForm(isPersonal));
 
   const fetchBudgets = useCallback(async () => {
     if (!businessId) return;
@@ -79,7 +89,7 @@ export default function BudgetingPage() {
         if (error) throw error;
         addNotification('Budget ditambahkan', 'success');
       }
-      setIsModalOpen(false); setEditing(null); setForm(emptyForm);
+      setIsModalOpen(false); setEditing(null); setForm(createEmptyForm(isPersonal));
       await fetchBudgets();
     } catch (err: any) { addNotification(err.message, 'error'); }
     finally { setSaving(false); }
@@ -110,7 +120,7 @@ export default function BudgetingPage() {
 
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-bold">Budget per Kategori</h2>
-          <Button variant="primary" size="sm" onClick={() => { setEditing(null); setForm(emptyForm); setIsModalOpen(true); }}>
+          <Button variant="primary" size="sm" onClick={() => { setEditing(null); setForm(createEmptyForm(isPersonal)); setIsModalOpen(true); }}>
             <FiPlus /> Tambah Budget
           </Button>
         </div>
@@ -172,7 +182,7 @@ export default function BudgetingPage() {
           <div>
             <label className="block text-sm font-medium mb-1">Kategori</label>
             <select className="input-field" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">

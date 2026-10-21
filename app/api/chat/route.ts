@@ -18,9 +18,27 @@ export async function POST(req: Request) {
     }
 
     // Prepare System Prompt with Context
-    const systemPrompt = `Anda adalah Asisten Keuangan DuitTrack, asisten AI cerdas untuk membantu UMKM menganalisis keuangan mereka.
+    const { data: profile, error: profileError } = await auth.client
+      .from('users')
+      .select('business_id')
+      .eq('id', auth.user.id)
+      .maybeSingle();
+    if (profileError) throw profileError;
+
+    let isPersonal = false;
+    if (profile?.business_id) {
+      const { data: workspace, error: workspaceError } = await auth.client
+        .from('businesses')
+        .select('workspace_type')
+        .eq('id', profile.business_id)
+        .maybeSingle();
+      if (workspaceError) throw workspaceError;
+      isPersonal = workspace?.workspace_type === 'personal';
+    }
+    const systemPrompt = `Anda adalah Asisten Keuangan DuitTrack, asisten AI cerdas untuk membantu ${isPersonal ? 'pengguna mengelola keuangan pribadi' : 'UMKM menganalisis keuangan bisnis'}.
 Anda harus memberikan jawaban yang ringkas, profesional, mudah dipahami, dan memberikan *actionable insights*.
 Jawab dalam bahasa Indonesia yang natural. Format teks menggunakan Markdown (bold, list, dll).
+${isPersonal ? 'Gunakan istilah keuangan pribadi seperti pemasukan, pengeluaran, dan sisa saldo. Jangan memberi saran tentang inventori, pelanggan, ekspansi, atau operasional bisnis.' : ''}
 
 Konteks Keuangan Pengguna Saat Ini:
 - Total Pendapatan: Rp ${context.totalRevenue?.toLocaleString('id-ID')}

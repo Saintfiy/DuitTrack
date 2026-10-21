@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/utils/helpers';
 
 const CATEGORIES = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
+const PERSONAL_CATEGORIES = ['Makanan & Minuman', 'Tagihan', 'Transportasi', 'Belanja', 'Kesehatan', 'Pendidikan', 'Hiburan', 'Lainnya'];
 
 async function runGeminiOCR(file: File): Promise<{
   amount: number;

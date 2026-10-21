@@ -90,8 +90,12 @@ function SidebarContent({ mobile = false, onClose }: { mobile?: boolean; onClose
       {/* Bisnis Info */}
       {expanded && business && (
         <div className="px-4 py-3 border-b border-white/10">
-          <p className="text-xs text-white/50 truncate">Bisnis Aktif</p>
-          <p className="text-sm font-semibold truncate">{business.name}</p>
+          <p className="text-xs text-white/50 truncate">
+            {business.workspace_type === 'personal' ? 'Pencatatan Pribadi' : 'Bisnis Aktif'}
+          </p>
+          <p className="text-sm font-semibold truncate">
+            {business.workspace_type === 'personal' ? 'Keuangan Pribadi' : business.name}
+          </p>
         </div>
       )}
 
@@ -105,7 +109,9 @@ function SidebarContent({ mobile = false, onClose }: { mobile?: boolean; onClose
               </p>
             )}
             <div className="space-y-0.5 px-2">
-              {group.items.map((item) => {
+              {group.items
+                .filter(item => business?.workspace_type !== 'personal' || !['/inventory', '/crm'].includes(item.href))
+                .map((item) => {
                 const isActive = pathname?.startsWith(item.href);
                 const Icon = item.icon;
                 return (
@@ -123,7 +129,7 @@ function SidebarContent({ mobile = false, onClose }: { mobile?: boolean; onClose
                     </motion.div>
                   </Link>
                 );
-              })}
+                })}
             </div>
           </div>
         ))}

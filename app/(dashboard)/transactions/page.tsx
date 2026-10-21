@@ -10,12 +10,17 @@ import { useNotificationStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES_INCOME = ['Penjualan Produk', 'Jasa', 'Investasi', 'Lainnya'];
-const CATEGORIES_EXPENSE = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
+const BUSINESS_CATEGORIES_INCOME = ['Penjualan Produk', 'Jasa', 'Investasi', 'Lainnya'];
+const BUSINESS_CATEGORIES_EXPENSE = ['Operasional', 'Perlengkapan', 'Gaji', 'Sewa', 'Marketing', 'Lainnya'];
+const PERSONAL_CATEGORIES_INCOME = ['Gaji', 'Usaha Sampingan', 'Investasi', 'Hadiah', 'Lainnya'];
+const PERSONAL_CATEGORIES_EXPENSE = ['Makanan & Minuman', 'Tagihan', 'Transportasi', 'Belanja', 'Kesehatan', 'Pendidikan', 'Hiburan', 'Lainnya'];
 
 export default function TransactionsPage() {
-  const { user, businessId, loading: authLoading } = useAuth({ requireAuth: true });
+  const { user, businessId, workspaceType, loading: authLoading } = useAuth({ requireAuth: true });
   const { addNotification } = useNotificationStore();
+  const isPersonal = workspaceType === 'personal';
+  const categoriesIncome = isPersonal ? PERSONAL_CATEGORIES_INCOME : BUSINESS_CATEGORIES_INCOME;
+  const categoriesExpense = isPersonal ? PERSONAL_CATEGORIES_EXPENSE : BUSINESS_CATEGORIES_EXPENSE;
 
   const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all');
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -27,10 +32,17 @@ export default function TransactionsPage() {
 
   const emptyForm = {
     description: '', amount: '', type: 'income',
-    category: 'Penjualan Produk', paymentMethod: 'Tunai',
+    category: isPersonal ? 'Gaji' : 'Penjualan Produk', paymentMethod: 'Tunai',
     date: new Date().toISOString().split('T')[0],
   };
   const [formData, setFormData] = useState(emptyForm);
+
+  useEffect(() => {
+    setFormData(current => ({
+      ...current,
+      category: current.type === 'income' ? categoriesIncome[0] : categoriesExpense[0],
+    }));
+  }, [workspaceType]);
 
   const fetchTransactions = useCallback(async () => {
     if (!businessId) return;
@@ -122,7 +134,7 @@ export default function TransactionsPage() {
   };
 
   const filterLabels: Record<string, string> = { all: 'Semua', income: 'Pemasukan', expense: 'Pengeluaran' };
-  const categories = formData.type === 'income' ? CATEGORIES_INCOME : CATEGORIES_EXPENSE;
+  const categories = formData.type === 'income' ? categoriesIncome : categoriesExpense;
 
   const transactionFormJSX = (
     <form onSubmit={handleSave} className="space-y-4">
@@ -135,7 +147,11 @@ export default function TransactionsPage() {
         <div>
           <label className="block text-sm font-medium mb-1">Tipe</label>
           <select className="input-field" value={formData.type}
-            onChange={e => setFormData({ ...formData, type: e.target.value, category: e.target.value === 'income' ? 'Penjualan Produk' : 'Operasional' })}>
+            onChange={e => setFormData({
+              ...formData,
+              type: e.target.value,
+              category: e.target.value === 'income' ? categoriesIncome[0] : categoriesExpense[0],
+            })}>
             <option value="income">Pemasukan</option>
             <option value="expense">Pengeluaran</option>
           </select>

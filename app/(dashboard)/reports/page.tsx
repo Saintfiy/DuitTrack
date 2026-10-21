@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, Button } from '@/components/ui';
-import { FiDownload, FiFileText, FiTrendingUp, FiDollarSign, FiBox } from 'react-icons/fi';
+import { FiDownload, FiFileText, FiTrendingUp, FiDollarSign } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/utils/helpers';
 import { useNotificationStore } from '@/store';
@@ -13,7 +13,8 @@ import { supabase } from '@/lib/supabase';
 const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
 export default function ReportsPage() {
-  const { businessId, business, loading: authLoading } = useAuth({ requireAuth: true });
+  const { businessId, business, workspaceType, loading: authLoading } = useAuth({ requireAuth: true });
+  const isPersonal = workspaceType === 'personal';
   const { addNotification } = useNotificationStore();
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('month');
@@ -28,10 +29,11 @@ export default function ReportsPage() {
     else if (period === 'quarter') start = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
     else start = new Date(now.getFullYear(), 0, 1);
 
-    const [{ data: txData }, { data: invData }] = await Promise.all([
-      supabase.from('transactions').select('*').eq('business_id', businessId).gte('date', start.toISOString()),
-      supabase.from('inventory').select('name,quantity,unit_price').eq('business_id', businessId).order('quantity', { ascending: true }).limit(5),
-    ]);
+    const { data: txData } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('business_id', businessId)
+      .gte('date', start.toISOString());
 
     const transactions = txData || [];
     const income = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + t.amount, 0);
@@ -43,7 +45,7 @@ export default function ReportsPage() {
     transactions.filter((t: any) => t.type === 'expense').forEach((t: any) => { catMap[t.category] = (catMap[t.category] || 0) + t.amount; });
     const topCategories = Object.entries(catMap).sort(([, a], [, b]) => b - a).slice(0, 5).map(([name, amount]) => ({ name, amount }));
 
-    setReport({ income, expense, profit, margin, topCategories, topItems: invData || [] });
+    setReport({ income, expense, profit, margin, topCategories, topItems: [] });
     setLoading(false);
   }, [businessId, period]);
 
@@ -56,14 +58,14 @@ export default function ReportsPage() {
   const exportCSV = () => {
     const rows = [
       ['Laporan Keuangan DuitTrack'],
-      [`Bisnis: ${business?.name || ''}`],
+      [isPersonal ? 'Pencatatan: Keuangan Pribadi' : `Bisnis: ${business?.name || ''}`],
       [`Periode: ${period === 'month' ? 'Bulan Ini' : period === 'quarter' ? 'Kuartal Ini' : 'Tahun Ini'}`],
       [],
       ['Metrik', 'Nilai'],
-      ['Total Pendapatan', report.income],
+      [isPersonal ? 'Total Pemasukan' : 'Total Pendapatan', report.income],
       ['Total Pengeluaran', report.expense],
-      ['Laba Bersih', report.profit],
-      ['Margin Keuntungan', `${report.margin.toFixed(1)}%`],
+      [isPersonal ? 'Selisih Bersih' : 'Laba Bersih', report.profit],
+      ...(!isPersonal ? [['Margin Keuntungan', `${report.margin.toFixed(1)}%`]] : []),
       [],
       ['Kategori Pengeluaran Terbesar', 'Jumlah'],
       ...report.topCategories.map((c: any) => [c.name, c.amount]),
@@ -99,8 +101,8 @@ export default function ReportsPage() {
 
         {/* Print Header */}
         <div className="hidden print:block mb-8 text-center text-black">
-          <h1 className="text-3xl font-bold">Laporan Keuangan DuitTrack</h1>
-          <p className="mt-1">{business?.name}  {periodLabel}</p>
+          <h1 className="text-3xl font-bold">{isPersonal ? 'Laporan Keuangan Pribadi' : 'Laporan Keuangan DuitTrack'}</h1>
+          <p className="mt-1">{isPersonal ? 'Keuangan Pribadi' : business?.name}  {periodLabel}</p>
           <p className="text-sm">Dicetak pada: {new Date().toLocaleDateString('id-ID')}</p>
         </div>
 
@@ -109,12 +111,12 @@ export default function ReportsPage() {
         ) : (
           <>
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:grid-cols-2 print:gap-6 print:mb-8">
+            <div className={`grid grid-cols-2 ${isPersonal ? 'md:grid-cols-3' : 'md:grid-cols-4'} gap-4 print:grid-cols-2 print:gap-6 print:mb-8`}>
               {[
-                { label: 'Total Pendapatan', value: formatCurrency(report.income), icon: FiDollarSign, color: 'text-green-400' },
+                { label: isPersonal ? 'Total Pemasukan' : 'Total Pendapatan', value: formatCurrency(report.income), icon: FiDollarSign, color: 'text-green-400' },
                 { label: 'Total Pengeluaran', value: formatCurrency(report.expense), icon: FiTrendingUp, color: 'text-red-400' },
-                { label: 'Laba Bersih', value: formatCurrency(report.profit), icon: FiTrendingUp, color: report.profit >= 0 ? 'text-green-400' : 'text-red-400' },
-                { label: 'Margin Keuntungan', value: `${report.margin.toFixed(1)}%`, icon: FiBox, color: report.margin >= 20 ? 'text-green-400' : 'text-yellow-400' },
+                { label: isPersonal ? 'Selisih Bersih' : 'Laba Bersih', value: formatCurrency(report.profit), icon: FiTrendingUp, color: report.profit >= 0 ? 'text-green-400' : 'text-red-400' },
+                ...(!isPersonal ? [{ label: 'Margin Keuntungan', value: `${report.margin.toFixed(1)}%`, icon: FiTrendingUp, color: report.margin >= 20 ? 'text-green-400' : 'text-yellow-400' }] : []),
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                   <Card hover={false}>
@@ -128,10 +130,10 @@ export default function ReportsPage() {
             {/* P&L Statement */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card hover={false}>
-                <h3 className="text-lg font-bold mb-4">Laporan Laba Rugi  {periodLabel}</h3>
+                <h3 className="text-lg font-bold mb-4">{isPersonal ? 'Ringkasan Keuangan' : 'Laporan Laba Rugi'}  {periodLabel}</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between py-2 border-b border-white/5">
-                    <span className="text-white/70">Pendapatan Kotor</span>
+                    <span className="text-white/70">{isPersonal ? 'Total Pemasukan' : 'Pendapatan Kotor'}</span>
                     <span className="font-semibold text-green-400">+ {formatCurrency(report.income)}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-white/5">
@@ -139,7 +141,7 @@ export default function ReportsPage() {
                     <span className="font-semibold text-red-400">- {formatCurrency(report.expense)}</span>
                   </div>
                   <div className="flex justify-between py-3 border-t-2 border-white/20 mt-2">
-                    <span className="font-bold text-lg">Laba Bersih</span>
+                    <span className="font-bold text-lg">{isPersonal ? 'Selisih Bersih' : 'Laba Bersih'}</span>
                     <span className={`font-black text-xl ${report.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>{report.profit >= 0 ? '+' : ''}{formatCurrency(report.profit)}</span>
                   </div>
                 </div>

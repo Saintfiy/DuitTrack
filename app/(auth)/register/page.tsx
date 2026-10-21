@@ -16,6 +16,7 @@ export default function RegisterPage() {
     password: '',
     fullName: '',
     businessName: '',
+    workspaceType: 'business' as 'business' | 'personal',
     industry: 'retail',
     country: 'ID',
     currency: 'IDR',
@@ -41,7 +42,7 @@ export default function RegisterPage() {
     }
 
     if (step === 'business') {
-      if (!formData.businessName) {
+      if (formData.workspaceType === 'business' && !formData.businessName.trim()) {
         setError('Silakan masukkan nama bisnis');
         return;
       }
@@ -51,7 +52,7 @@ export default function RegisterPage() {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
-          options: { data: { full_name: formData.fullName } },
+          options: { data: { full_name: formData.fullName, workspace_type: formData.workspaceType } },
         });
         if (authError) throw authError;
         if (!authData.user) throw new Error('Gagal membuat akun');
@@ -72,7 +73,10 @@ export default function RegisterPage() {
           .from('businesses')
           .insert({
             owner_id: userId,
-            name: formData.businessName,
+            name: formData.workspaceType === 'personal'
+              ? `Keuangan Pribadi - ${formData.fullName.trim()}`
+              : formData.businessName.trim(),
+            workspace_type: formData.workspaceType,
             industry: formData.industry,
             country: formData.country,
             currency: formData.currency,
@@ -140,7 +144,7 @@ export default function RegisterPage() {
                     {i < 1 && <div className="flex-1 h-px bg-white/20 w-8" />}
                   </div>
                 ))}
-                <span className="text-xs text-white/50 ml-1">{step === 'account' ? 'Informasi Akun' : 'Data Bisnis'}</span>
+                <span className="text-xs text-white/50 ml-1">{step === 'account' ? 'Informasi Akun' : 'Jenis Pencatatan'}</span>
               </div>
 
               {step === 'account' && (
@@ -172,20 +176,52 @@ export default function RegisterPage() {
 
               {step === 'business' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">Nama Bisnis</label>
-                    <input type="text" name="businessName" required value={formData.businessName} onChange={handleChange} className="input-field" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">Industri</label>
-                    <select name="industry" value={formData.industry} onChange={handleChange} className="input-field">
-                      <option value="retail">Retail</option>
-                      <option value="food">Food & Beverage</option>
-                      <option value="services">Jasa</option>
-                      <option value="manufacturing">Manufaktur</option>
-                      <option value="other">Lainnya</option>
-                    </select>
-                  </div>
+                  <fieldset>
+                    <legend className="block text-sm font-medium text-white/80 mb-2">Pilih jenis pencatatan</legend>
+                    <div className="grid grid-cols-2 gap-3">
+                      {([
+                        { value: 'business', title: 'Bisnis', description: 'Untuk usaha dan operasional' },
+                        { value: 'personal', title: 'Pribadi', description: 'Untuk keuangan sehari-hari' },
+                      ] as const).map(option => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, workspaceType: option.value })}
+                          aria-pressed={formData.workspaceType === option.value}
+                          className={`rounded-xl border p-3 text-left transition-smooth ${
+                            formData.workspaceType === option.value
+                              ? 'border-primary bg-primary/10'
+                              : 'border-white/10 bg-white/5 hover:bg-white/10'
+                          }`}
+                        >
+                          <span className="block font-semibold">{option.title}</span>
+                          <span className="mt-1 block text-xs text-white/50">{option.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                  {formData.workspaceType === 'business' ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-white/80 mb-2">Nama Bisnis</label>
+                        <input type="text" name="businessName" required value={formData.businessName} onChange={handleChange} className="input-field" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-white/80 mb-2">Industri</label>
+                        <select name="industry" value={formData.industry} onChange={handleChange} className="input-field">
+                          <option value="retail">Retail</option>
+                          <option value="food">Food & Beverage</option>
+                          <option value="services">Jasa</option>
+                          <option value="manufacturing">Manufaktur</option>
+                          <option value="other">Lainnya</option>
+                        </select>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-xl bg-white/5 p-4 text-sm text-white/60">
+                      Mode pribadi berisi transaksi, hutang/piutang, budgeting, cashflow, laporan, scan struk, dan asisten AI. Menu inventori dan pelanggan tidak ditampilkan.
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-white/80 mb-2">Negara</label>
