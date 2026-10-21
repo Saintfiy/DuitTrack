@@ -175,14 +175,14 @@ export default function ScanStrukPage() {
     <DashboardLayout title="Scan Struk  Smart OCR">
       <div className="max-w-xl mx-auto space-y-6">
         {/* Step indicator */}
-        <div className="flex items-center gap-2 text-sm">
+        <div className="relative flex items-start" aria-label="Tahapan scan struk">
+          <div className="absolute left-[12.5%] right-[12.5%] top-3 h-px bg-white/10" />
           {steps.map((s, i) => {
             const active = stepKeys.indexOf(step) >= i;
             return (
-              <div key={s} className="flex items-center gap-2">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${active ? 'bg-primary text-darker' : 'bg-white/10 text-white/40'}`}>{i + 1}</div>
-                <span className={`text-xs ${active ? 'text-white' : 'text-white/40'}`}>{s}</span>
-                {i < 3 && <div className="w-6 h-px bg-white/10" />}
+              <div key={s} className="relative z-10 flex min-w-0 flex-1 flex-col items-center gap-1.5">
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-all ${active ? 'bg-primary text-darker' : 'bg-white/10 text-white/40'}`}>{i + 1}</div>
+                <span className={`whitespace-nowrap text-center text-[10px] leading-tight sm:text-xs ${active ? 'text-white' : 'text-white/40'}`}>{s}</span>
               </div>
             );
           })}
