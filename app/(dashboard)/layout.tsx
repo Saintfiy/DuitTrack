@@ -5,7 +5,7 @@ import { Navbar } from '@/components/navbar';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardRootLayout({ children }: { children: React.ReactNode }) {
-  const { loading, isAuthenticated } = useAuth({ requireAuth: true });
+  const { loading, isAuthenticated, user, business, logout } = useAuth({ requireAuth: true });
 
   if (loading) {
     return (
@@ -23,7 +23,7 @@ export default function DashboardRootLayout({ children }: { children: React.Reac
   return (
     <div className="relative min-h-screen bg-dark">
       <div className="print:hidden">
-        <Sidebar />
+        <Sidebar user={user} business={business} logout={logout} />
         <Navbar />
       </div>
       {children}

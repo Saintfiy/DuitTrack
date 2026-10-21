@@ -11,7 +11,7 @@ import {
   FiDollarSign,
 } from 'react-icons/fi';
 import { useUIStore } from '@/store';
-import { useAuth } from '@/hooks/useAuth';
+import type { Business, User } from '@/types';
 
 const menuGroups = [
   {
@@ -52,10 +52,17 @@ const menuGroups = [
   },
 ];
 
-function SidebarContent({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) {
+interface SidebarContentProps {
+  user: User | null;
+  business: Business | null;
+  logout: () => Promise<void>;
+  mobile?: boolean;
+  onClose?: () => void;
+}
+
+function SidebarContent({ user, business, logout, mobile = false, onClose }: SidebarContentProps) {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar } = useUIStore();
-  const { user, business, logout } = useAuth();
 
   const expanded = mobile || sidebarOpen;
 
@@ -94,7 +101,7 @@ function SidebarContent({ mobile = false, onClose }: { mobile?: boolean; onClose
             {business.workspace_type === 'personal' ? 'Pencatatan Pribadi' : 'Bisnis Aktif'}
           </p>
           <p className="text-sm font-semibold truncate">
-            {business.workspace_type === 'personal' ? 'Keuangan Pribadi' : business.name}
+            {business.workspace_type === 'personal' ? user?.full_name || user?.email || 'Keuangan Pribadi' : business.name}
           </p>
         </div>
       )}
@@ -169,7 +176,7 @@ function SidebarContent({ mobile = false, onClose }: { mobile?: boolean; onClose
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ user, business, logout }: Omit<SidebarContentProps, 'mobile' | 'onClose'>) {
   const { sidebarOpen, mobileOpen, setMobileOpen } = useUIStore();
 
   return (
@@ -180,7 +187,7 @@ export function Sidebar() {
         style={{ width: sidebarOpen ? 240 : 72, transition: 'width 0.25s ease' }}
       >
         <div className="h-full bg-darker border-r border-white/10 overflow-hidden">
-          <SidebarContent />
+          <SidebarContent user={user} business={business} logout={logout} />
         </div>
       </div>
 
@@ -204,7 +211,13 @@ export function Sidebar() {
               transition={{ type: 'spring', stiffness: 320, damping: 32 }}
               className="lg:hidden fixed left-0 top-0 h-[100dvh] w-[240px] bg-darker border-r border-white/10 z-50 flex flex-col"
             >
-              <SidebarContent mobile onClose={() => setMobileOpen(false)} />
+              <SidebarContent
+                user={user}
+                business={business}
+                logout={logout}
+                mobile
+                onClose={() => setMobileOpen(false)}
+              />
             </motion.div>
           </>
         )}
