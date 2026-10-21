@@ -29,6 +29,7 @@ const SettingsPage = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarZoom, setAvatarZoom] = useState(1);
+  const [showAvatarViewer, setShowAvatarViewer] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
@@ -257,33 +258,23 @@ const SettingsPage = () => {
 
           {/* Avatar section */}
           <div className="flex items-center gap-5 mb-6 pb-6 border-b border-white/10">
-            <div className="relative group">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-primary/20 border-2 border-white/10 flex items-center justify-center">
-                {displayAvatar ? (
-                  <img
-                    src={displayAvatar}
-                    alt="Foto profil"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-2xl font-bold text-primary">{initials}</span>
-                )}
-              </div>
-
-              {/* Overlay hover */}
-              <motion.button
-                whileHover={{ opacity: 1 }}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingAvatar}
-                className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+            {displayAvatar ? (
+              <button
+                type="button"
+                onClick={() => setShowAvatarViewer(true)}
+                aria-label="Lihat foto profil"
+                className="group relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-white/10 bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {uploadingAvatar ? (
-                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <FiCamera size={20} className="text-white" />
-                )}
-              </motion.button>
-            </div>
+                <img src={displayAvatar} alt="" className="h-full w-full object-cover" />
+                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <FiZoomIn size={22} />
+                </span>
+              </button>
+            ) : (
+              <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full border-2 border-white/10 bg-primary/20">
+                  <span className="text-2xl font-bold text-primary">{initials}</span>
+              </div>
+            )}
 
             <div className="flex-1">
               <p className="font-semibold text-sm">{profileData.full_name || 'Pengguna'}</p>
@@ -448,6 +439,35 @@ const SettingsPage = () => {
           </div>
         </Card>
       </div>
+
+      {showAvatarViewer && displayAvatar && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          onClick={() => setShowAvatarViewer(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Foto profil"
+            className="relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowAvatarViewer(false)}
+              aria-label="Tutup foto profil"
+              className="absolute -right-2 -top-12 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            >
+              <FiX size={20} />
+            </button>
+            <img
+              src={displayAvatar}
+              alt={`Foto profil ${profileData.full_name || 'pengguna'}`}
+              className="max-h-[80vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
 
       {avatarPreview && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
