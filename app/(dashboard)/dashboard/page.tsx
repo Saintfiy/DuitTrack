@@ -135,7 +135,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <DashboardLayout title="Dashboard">
+      <DashboardLayout title="Dashboard" hideTitle>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="card h-32 animate-pulse bg-white/5 rounded-2xl" />
@@ -146,29 +146,31 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardLayout title="Dashboard">
-      <div className="space-y-6">
+    <DashboardLayout title="Dashboard" hideTitle>
+      <div className="space-y-5 md:space-y-6">
 
         {/* ─── Welcome Header ─── */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap items-center justify-between gap-4"
+          className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="text-white/40 text-sm font-medium uppercase tracking-widest mb-1">Selamat datang kembali 👋</p>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+            <p className="text-white/45 text-[11px] md:text-sm font-semibold uppercase tracking-[0.16em] mb-1.5">
+              {isPersonal ? 'Ringkasan Pribadi' : 'Dashboard Bisnis'}
+            </p>
+            <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
               {isPersonal ? 'Keuangan Pribadi' : business?.name || 'Bisnis Anda'}
             </h1>
           </div>
-          <div className="flex gap-3">
-            <Link href="/transactions">
-              <Button variant="primary" size="sm">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+            <Link href="/transactions" className="min-w-0">
+              <Button variant="primary" size="sm" className="w-full justify-center whitespace-nowrap">
                 <FiBarChart2 size={14} /> Tambah Transaksi
               </Button>
             </Link>
-            <Link href="/ai-assistant">
-              <Button variant="secondary" size="sm">
+            <Link href="/ai-assistant" className="min-w-0">
+              <Button variant="secondary" size="sm" className="w-full justify-center whitespace-nowrap">
                 Tanya AI <FiArrowRight size={14} />
               </Button>
             </Link>
@@ -176,25 +178,27 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* ─── Time Filter Bar ─── */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 text-white/40 text-xs mr-1">
+        <div className="space-y-2 md:flex md:items-center md:gap-2 md:space-y-0">
+          <div className="flex items-center gap-1.5 text-white/40 text-xs md:mr-1">
             <FiCalendar size={12} />
             <span className="uppercase tracking-wider font-semibold">Rentang:</span>
           </div>
-          {TIME_FILTERS.map(f => (
-            <motion.button
-              key={f.value}
-              layout
-              onClick={() => setTimeFilter(f.value)}
-              className={`px-4 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                timeFilter === f.value
-                  ? 'bg-primary text-darker shadow-lg shadow-primary/30'
-                  : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {f.label}
-            </motion.button>
-          ))}
+          <div className="grid grid-cols-4 gap-2 md:flex">
+            {TIME_FILTERS.map(f => (
+              <motion.button
+                key={f.value}
+                layout
+                onClick={() => setTimeFilter(f.value)}
+                className={`rounded-xl px-2 py-2 text-xs md:px-4 md:py-1.5 md:text-sm font-semibold transition-all duration-200 ${
+                  timeFilter === f.value
+                    ? 'bg-primary text-darker shadow-lg shadow-primary/20'
+                    : 'bg-white/5 text-white/55 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                {f.label}
+              </motion.button>
+            ))}
+          </div>
         </div>
 
         {/* ─── KPI Stat Cards ─── */}
@@ -227,6 +231,8 @@ export default function DashboardPage() {
               compact={formatCurrencyCompact(stats.profit)}
               icon={<FiTrendingUp />}
               color={stats.profit >= 0 ? 'primary' : 'secondary'}
+              className={isPersonal ? 'col-span-2 lg:col-span-1' : ''}
+              wide={isPersonal}
             />
             {!isPersonal && (
               <StatCard
@@ -241,10 +247,10 @@ export default function DashboardPage() {
         </AnimatePresence>
 
         {stats.totalRevenue === 0 && stats.totalExpense === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card text-center py-16">
-            <div className="text-5xl mb-4">📊</div>
-            <h3 className="text-xl font-bold mb-2">Belum ada data transaksi</h3>
-            <p className="text-white/50 mb-6 text-sm">Mulai dengan menambahkan transaksi pertama Anda.</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card text-center py-10 md:py-16">
+            <div className="text-4xl md:text-5xl mb-3 md:mb-4">📊</div>
+            <h3 className="text-lg md:text-xl font-bold mb-2">Belum ada data transaksi</h3>
+            <p className="max-w-md mx-auto text-white/50 mb-5 md:mb-6 text-sm">Catat pemasukan atau pengeluaran pertama untuk melihat ringkasan dan tren keuangan Anda.</p>
             <Link href="/transactions">
               <Button variant="primary" size="sm">Tambah Transaksi <FiArrowRight /></Button>
             </Link>

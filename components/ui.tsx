@@ -31,9 +31,11 @@ interface StatCardProps {
   trend?: 'up' | 'down';
   compact?: string;
   color?: string; // e.g., 'primary', 'secondary', 'accent', 'green'
+  className?: string;
+  wide?: boolean;
 }
 
-export function StatCard({ label, value, icon, change, trend, compact, color = 'primary' }: StatCardProps) {
+export function StatCard({ label, value, icon, change, trend, compact, color = 'primary', className = '', wide = false }: StatCardProps) {
   const colorMap: Record<string, string> = {
     primary: 'from-primary/20 to-transparent text-primary',
     secondary: 'from-secondary/20 to-transparent text-secondary',
@@ -45,40 +47,50 @@ export function StatCard({ label, value, icon, change, trend, compact, color = '
   const bgGradient = colorMap[color] || colorMap.primary;
 
   return (
-    <Card hover={true} className="group cursor-default">
+    <Card hover={true} className={`group cursor-default p-3 sm:p-4 ${className}`}>
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${bgGradient} opacity-30 rounded-bl-full group-hover:opacity-60 transition-opacity duration-500`} />
-      <div className="relative z-10">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider truncate mt-1.5">{label}</p>
-          <div className={`text-2xl opacity-80 flex-shrink-0 p-2 rounded-xl bg-white/5 ${bgGradient.split(' ')[2]}`}>
-            {icon}
+      <div className={`relative z-10 ${wide ? 'flex items-center justify-between gap-4' : ''}`}>
+        <div className={wide ? 'min-w-0 flex-1' : ''}>
+          {!wide && (
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <p className="min-w-0 line-clamp-2 text-[10px] sm:text-xs leading-snug text-white/50 font-semibold uppercase tracking-wide sm:tracking-wider">{label}</p>
+              <div className={`text-xl sm:text-2xl opacity-80 flex-shrink-0 p-1.5 sm:p-2 rounded-xl bg-white/5 ${bgGradient.split(' ')[2]}`}>
+                {icon}
+              </div>
+            </div>
+          )}
+          {wide && <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-white/50">{label}</p>}
+          <div className="min-w-0">
+            <motion.div
+              key={value}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-1"
+            >
+              {compact ? (
+                <>
+                  <p className="text-xl sm:text-2xl font-black drop-shadow-md sm:hidden">{compact}</p>
+                  <p className="hidden sm:block text-2xl xl:text-3xl font-black drop-shadow-md tracking-tight">{value}</p>
+                </>
+              ) : (
+                <p className="text-xl sm:text-2xl xl:text-3xl font-black drop-shadow-md tracking-tight">{value}</p>
+              )}
+            </motion.div>
+            {change !== undefined && (
+              <p className={`text-[10px] sm:text-[11px] font-bold mt-2 flex flex-wrap items-center gap-1 ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+                <span className={`px-1.5 py-0.5 rounded-md ${trend === 'up' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                  {trend === 'up' ? '↑' : '↓'} {Math.abs(change).toFixed(1)}%
+                </span>
+                <span className="text-white/40 font-medium sm:ml-1">vs bulan lalu</span>
+              </p>
+            )}
           </div>
         </div>
-        <div className="min-w-0">
-          <motion.div
-            key={value}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-1"
-          >
-            {compact ? (
-              <>
-                <p className="text-2xl font-black sm:hidden drop-shadow-md">{compact}</p>
-                <p className="text-2xl xl:text-3xl font-black hidden sm:block drop-shadow-md tracking-tight">{value}</p>
-              </>
-            ) : (
-              <p className="text-xl sm:text-2xl xl:text-3xl font-black drop-shadow-md tracking-tight">{value}</p>
-            )}
-          </motion.div>
-          {change !== undefined && (
-            <p className={`text-[11px] font-bold mt-2 flex items-center gap-1 ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
-              <span className={`px-1.5 py-0.5 rounded-md ${trend === 'up' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                {trend === 'up' ? '↑' : '↓'} {Math.abs(change).toFixed(1)}%
-              </span>
-              <span className="text-white/40 font-medium ml-1">vs bulan lalu</span>
-            </p>
-          )}
-        </div>
+        {wide && (
+          <div className={`text-2xl sm:text-3xl opacity-80 flex-shrink-0 p-2.5 sm:p-3 rounded-2xl bg-white/5 ${bgGradient.split(' ')[2]}`}>
+            {icon}
+          </div>
+        )}
       </div>
     </Card>
   );

@@ -7,9 +7,10 @@ import { motion } from 'framer-motion';
 interface DashboardLayoutProps {
   children: ReactNode;
   title?: string;
+  hideTitle?: boolean;
 }
 
-export function DashboardLayout({ children, title }: DashboardLayoutProps) {
+export function DashboardLayout({ children, title, hideTitle = false }: DashboardLayoutProps) {
   const { sidebarOpen } = useUIStore();
 
   return (
@@ -22,7 +23,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       } print:m-0`}
     >
       <div className="p-4 md:p-6">
-        {title && (
+        {title && !hideTitle && (
           <div className="mb-6 md:mb-8 print:hidden">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold gradient-text">{title}</h1>
           </div>
