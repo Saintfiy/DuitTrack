@@ -10,7 +10,15 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'istanbul',
-      include: ['app/api/transactions/**/route.ts'],
+      include: [
+        'app/api/transactions/**/route.ts',
+        'app/api/auth/**/route.ts',
+        'app/api/businesses/route.ts',
+        'app/api/ocr/route.ts',
+        'app/api/chat/route.ts',
+        'services/inventory.service.ts',
+        'services/crm.service.ts',
+      ],
       reporter: ['text', 'html'],
     },
   },
